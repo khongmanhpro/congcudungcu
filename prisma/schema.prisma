@@ -1,0 +1,362 @@
+// congcudungcu.vn — Prisma schema
+// DB: Supabase Postgres
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================================
+// AUTH & USER
+// ============================================================
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String?  // Supabase Auth quản lý, lưu thêm để tra cứu
+  name         String?
+  role         Role     @default(CUSTOMER)
+  phone        String?
+  avatarUrl    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  posts        Post[]
+  orders       Order[]
+  reviews      Review[]
+  customer     Customer?
+
+  @@index([role])
+}
+
+enum Role {
+  CUSTOMER
+  EDITOR
+  ADMIN
+}
+
+// ============================================================
+// TAXONOMY
+// ============================================================
+
+model Category {
+  id          String       @id @default(uuid())
+  name        String
+  slug        String       @unique
+  description String?
+  imageUrl    String?
+  parentId    String?
+  parent      Category?    @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children    Category[]   @relation("CategoryTree")
+  type        CategoryType @default(PRODUCT)
+  posts       Post[]
+  products    Product[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([parentId])
+  @@index([type])
+}
+
+enum CategoryType {
+  PRODUCT
+  POST
+}
+
+model Tag {
+  id    String   @id @default(uuid())
+  name  String
+  slug  String   @unique
+  posts Post[]
+
+  @@index([slug])
+}
+
+model Brand {
+  id       String    @id @default(uuid())
+  name     String
+  slug     String    @unique
+  logoUrl  String?
+  country  String?
+  products Product[]
+
+  @@index([slug])
+}
+
+// ============================================================
+// PRODUCT
+// ============================================================
+
+model Product {
+  id          String        @id @default(uuid())
+  name        String
+  slug        String        @unique
+  sku         String?       @unique
+  price       Int           // VND, nguyên
+  salePrice   Int?
+  stock       Int           @default(0)
+  shortDesc   String?
+  description String        // HTML từ Tiptap
+  specs       Json?         // [{label,value}] key-value
+  status      PublishStatus @default(DRAFT)
+  featured    Boolean       @default(false)
+  weight      Int?          // gram
+  dimensions  String?
+  categoryId  String?
+  category    Category?     @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  brandId     String?
+  brand       Brand?        @relation(fields: [brandId], references: [id], onDelete: SetNull)
+  images       ProductImage[]
+  reviews      Review[]
+  orderItems   OrderItem[]
+  quoteRequests QuoteRequest[]
+  createdAt    DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  publishedAt DateTime?
+
+  @@index([categoryId])
+  @@index([brandId])
+  @@index([status])
+  @@index([featured])
+  @@index([publishedAt])
+}
+
+enum PublishStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model ProductImage {
+  id        String  @id @default(uuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url       String
+  alt       String?
+  position  Int     @default(0)
+
+  @@index([productId])
+}
+
+// ============================================================
+// POST
+// ============================================================
+
+model Post {
+  id          String        @id @default(uuid())
+  title       String
+  slug        String        @unique
+  excerpt     String?
+  content     String        // HTML từ Tiptap
+  coverImage  String?
+  authorId    String
+  author      User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  categoryId  String?
+  category    Category?     @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  tags        Tag[]
+  status      PublishStatus @default(DRAFT)
+  seoTitle    String?
+  seoDesc     String?
+  publishedAt DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([categoryId])
+  @@index([status])
+  @@index([publishedAt])
+  @@index([authorId])
+}
+
+// ============================================================
+// ORDER & PAYMENT
+// ============================================================
+
+model Order {
+  id           String      @id @default(uuid())
+  code         String      @unique // CDC-20260702-0001
+  customerId   String?
+  customer     User?       @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  // guest checkout fields
+  customerName String
+  phone        String
+  email        String?
+  address      String
+  city         String?
+  district     String?
+  ward         String?
+  note         String?
+  subtotal     Int
+  discount     Int         @default(0)
+  shippingFee  Int         @default(0)
+  total        Int
+  status       OrderStatus @default(PENDING)
+  items        OrderItem[]
+  payment      Payment?
+  shipment     Shipment?
+  couponId     String?
+  coupon       Coupon?     @relation(fields: [couponId], references: [id], onDelete: SetNull)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  paidAt       DateTime?
+
+  @@index([status])
+  @@index([customerId])
+  @@index([createdAt])
+}
+
+enum OrderStatus {
+  PENDING    // chờ thanh toán
+  PAID       // đã thanh toán
+  PROCESSING // đang xử lý
+  SHIPPED    // đã giao hàng
+  DELIVERED  // đã nhận
+  CANCELLED
+  REFUNDED
+}
+
+model OrderItem {
+  id        String   @id @default(uuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String?
+  product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  name      String // snapshot tên lúc mua
+  sku       String?
+  price     Int
+  qty       Int
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model Payment {
+  id            String         @id @default(uuid())
+  orderId       String         @unique
+  order         Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  provider      PaymentProvider @default(VNPAY)
+  amount        Int
+  status        PaymentStatus  @default(PENDING)
+  transactionId String? // vnp_TxnRef
+  vnpTxnNo      String? // vnp_TransactionNo
+  payUrl        String?
+  paidAt        DateTime?
+  raw           Json? // log IPN
+  createdAt     DateTime       @default(now())
+}
+
+enum PaymentProvider {
+  VNPAY
+  COD
+  BANK_TRANSFER
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+model Shipment {
+  id           String    @id @default(uuid())
+  orderId      String    @unique
+  order        Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  carrier      String?
+  trackingCode String?
+  status       String?
+  shippedAt    DateTime?
+  deliveredAt  DateTime?
+  fee          Int       @default(0)
+}
+
+model Coupon {
+  id         String     @id @default(uuid())
+  code       String     @unique
+  type       CouponType
+  value      Int // percent hoặc số tiền VND
+  minOrder   Int        @default(0)
+  expiresAt  DateTime?
+  usageLimit Int?
+  usedCount  Int        @default(0)
+  active     Boolean    @default(true)
+  orders     Order[]
+  createdAt  DateTime   @default(now())
+}
+
+enum CouponType {
+  PERCENT
+  FIXED
+}
+
+// ============================================================
+// CUSTOMER PROFILE & REVIEW
+// ============================================================
+
+model Customer {
+  id               String   @id @default(uuid())
+  userId           String   @unique
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  phone            String?
+  addresses        Json? // [{label,name,phone,address,city,district,ward,default}]
+  defaultAddressId String?
+  createdAt        DateTime @default(now())
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rating    Int // 1-5
+  content   String?
+  approved  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@unique([productId, userId])
+  @@index([productId])
+  @@index([userId])
+}
+
+// ============================================================
+// MEDIA & SETTINGS
+// ============================================================
+
+model Media {
+  id        String   @id @default(uuid())
+  url       String
+  alt       String?
+  type      String // image/jpeg...
+  size      Int
+  bucket    String // products | posts | media
+  createdAt DateTime @default(now())
+}
+
+model Setting {
+  key   String @id
+  value String
+}
+
+// ============================================================
+// QUOTE REQUEST (Báo giá sỉ — B2B)
+// ============================================================
+
+model QuoteRequest {
+  id        String   @id @default(uuid())
+  name      String
+  phone     String
+  email     String?
+  company   String?
+  address   String?
+  content   String
+  productId String?
+  product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  status    String   @default("NEW") // NEW | CONTACTED | QUOTED | CLOSED
+  createdAt DateTime @default(now())
+
+  @@index([status])
+  @@index([productId])
+}
