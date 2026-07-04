@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -78,10 +78,6 @@ export function ProductForm({
   // Image input
   const [imgUrl, setImgUrl] = useState("");
   const [imgAlt, setImgAlt] = useState("");
-
-  useEffect(() => {
-    if (!slugTouched) setSlug(slugify(name));
-  }, [name, slugTouched]);
 
   function addImage() {
     if (!imgUrl) return;
@@ -161,7 +157,16 @@ export function ProductForm({
             <h3 className="font-semibold">Thông tin cơ bản</h3>
             <div className="space-y-2">
               <Label htmlFor="name">Tên sản phẩm *</Label>
-              <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
+              <Input
+                id="name"
+                value={name}
+                onChange={(e) => {
+                  const nextName = e.target.value;
+                  setName(nextName);
+                  if (!slugTouched) setSlug(slugify(nextName));
+                }}
+                required
+              />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">

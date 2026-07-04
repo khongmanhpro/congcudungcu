@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,10 +48,6 @@ export function PostEditor({ post, categories }: { post: PostData | null; catego
   const [slugTouched, setSlugTouched] = useState(isEdit);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!slugTouched) setSlug(slugify(title));
-  }, [title, slugTouched]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -102,7 +98,11 @@ export function PostEditor({ post, categories }: { post: PostData | null; catego
             <Input
               id="title"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => {
+                const nextTitle = e.target.value;
+                setTitle(nextTitle);
+                if (!slugTouched) setSlug(slugify(nextTitle));
+              }}
               required
               placeholder="Tiêu đề bài viết"
             />

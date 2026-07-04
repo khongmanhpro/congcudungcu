@@ -2,10 +2,11 @@
 
 ## Tổng quan
 Dự án đã được cấu hình để chạy bằng Docker với PostgreSQL database. Cấu hình bao gồm:
-- Next.js 15+ App Router với Turbopack
+- Next.js App Router với standalone output
 - PostgreSQL 16 database
 - Prisma ORM
 - Multi-stage Docker build cho tối ưu kích thước image
+- Prisma migration service chạy trước app
 
 ## Các file đã tạo
 
@@ -16,8 +17,9 @@ Multi-stage build với 3 stages:
 - **runner**: Production-ready image với minimal dependencies
 
 ### 2. docker-compose.yml
-Định nghĩa 2 services:
+Định nghĩa 3 services:
 - **postgres**: PostgreSQL 16 database với healthcheck
+- **migrate**: Chạy `prisma migrate deploy`
 - **app**: Next.js application với environment variables
 
 ### 3. .dockerignore
@@ -31,17 +33,17 @@ Environment variables mẫu cho Docker environment
 ### Local Development với Docker
 
 ```bash
-# Build và chạy containers
-docker-compose up -d --build
+# Build, migrate và chạy containers
+docker compose --env-file .env.docker up -d --build
 
 # Xem logs
-docker-compose logs -f app
+docker compose logs -f app
 
 # Dừng containers
-docker-compose down
+docker compose down
 
 # Xem status
-docker-compose ps
+docker compose ps
 ```
 
 ### Truy cập ứng dụng
@@ -49,32 +51,26 @@ docker-compose ps
 - Database: localhost:5432
 
 ### Database Migration
-Do vấn đề với Prisma 7.x config trong Docker environment, migration cần được thực hiện theo cách sau:
+Migration được chạy tự động bởi service `migrate` trong `docker-compose.yml`.
 
-**Option 1: Migration từ local machine**
+Chạy riêng migration khi cần:
 ```bash
-# Set DATABASE_URL để trỏ vào Docker PostgreSQL
-export DATABASE_URL="postgresql://postgres:postgres@localhost:5432/congcudungcu"
-
-# Chạy migration
-pnpm prisma migrate deploy
-# hoặc
-pnpm prisma db push
+docker compose --env-file .env.docker run --rm migrate
 ```
 
-**Option 2: Sử dụng Prisma Studio**
+Kiểm tra bảng sau migration:
 ```bash
-# Chạy Prisma Studio với Docker database
-DATABASE_URL="postgresql://postgres:postgres@localhost:5432/congcudungcu" npx prisma studio
+docker exec congcudungcu-postgres psql -U postgres -d congcudungcu -c '\dt'
 ```
 
-**Option 3: Tạo migration script**
-Tạo script `scripts/migrate.sh`:
+Lưu ý: migration chỉ tạo schema. Để VPS có sản phẩm/bài viết thật, cần import bản backup PostgreSQL hiện tại.
+
 ```bash
-#!/bin/sh
-export DATABASE_URL="postgresql://postgres:postgres@postgres:5432/congcudungcu"
-export DIRECT_URL="postgresql://postgres:postgres@postgres:5432/congcudungcu"
-npx prisma migrate deploy
+# Export từ database local hiện tại
+pg_dump "$DATABASE_URL" > congcudungcu-backup.sql
+
+# Restore vào Docker PostgreSQL
+docker exec -i congcudungcu-postgres psql -U postgres -d congcudungcu < congcudungcu-backup.sql
 ```
 
 ## Deploy lên VPS
@@ -118,10 +114,10 @@ cp .env.docker .env
 docker-compose build
 
 # Chạy containers
-docker-compose up -d
+docker compose --env-file .env.docker up -d --build
 
 # Kiểm tra logs
-docker-compose logs -f
+docker compose logs -f
 ```
 
 ### 5. Cấu hình Nginx (Reverse Proxy)
