@@ -30,14 +30,20 @@ const FIELDS = [
   { key: "policy_payment", label: "Phương thức thanh toán", type: "textarea" },
   { key: "policy_dealer", label: "Trở thành đại lý", type: "textarea" },
   { key: "company_name", label: "Tên công ty (chân trang)", type: "input", hint: "Ví dụ: CÔNG TY CỔ PHẦN WORKMAN" },
+  { key: "store_area", label: "Khu vực phục vụ (SEO địa phương)", type: "input", hint: "Ví dụ: TP.HCM, Bình Dương, Đồng Nai" },
+  { key: "store_opening_hours", label: "Giờ mở cửa (định dạng cho Google)", type: "input", hint: "Ví dụ: Mo-Sa 07:30-17:30 (Mo=T2 … Su=CN)" },
+  { key: "store_lat", label: "Vĩ độ cửa hàng", type: "input", hint: "Lấy từ Google Maps: chuột phải vào vị trí → số đầu tiên" },
+  { key: "store_lng", label: "Kinh độ cửa hàng", type: "input" },
+  { key: "store_map_url", label: "Link Google Maps / Google Business Profile", type: "input" },
+  { key: "store_image", label: "Ảnh mặt tiền cửa hàng (URL)", type: "input" },
   { key: "home_banners", label: "Banner trang chủ", type: "textarea", hint: "Mỗi dòng 1 banner: link ảnh | tiêu đề | mô tả | link khi bấm. Để trống ảnh sẽ dùng banner màu kèm ảnh sản phẩm nổi bật." },
   { key: "home_youtube_videos", label: "Video / Hướng dẫn", type: "textarea", hint: "Mỗi dòng 1 video: link YouTube | tiêu đề" },
   { key: "footer_contacts", label: "Nhân viên kinh doanh (chân trang)", type: "textarea", hint: "Mỗi dòng: Tên | Số điện thoại" },
   { key: "footer_sites", label: "Website trong hệ thống (chân trang)", type: "textarea", hint: "Mỗi dòng: tên miền | link" },
 ];
 
-const GROUPED_PREFIXES = ["seo_", "vnpay_", "policy_", "home_", "footer_", "company_"];
-const isHomeField = (key: string) => ["home_", "footer_", "company_"].some((prefix) => key.startsWith(prefix));
+const GROUPED_PREFIXES = ["seo_", "vnpay_", "policy_", "home_", "footer_", "company_", "store_"];
+const isHomeField = (key: string) => ["home_", "footer_", "company_", "store_"].some((prefix) => key.startsWith(prefix));
 
 export function SettingsForm({ initial }: { initial: Record<string, string> }) {
   const [values, setValues] = useState<Record<string, string>>(initial);
@@ -81,7 +87,7 @@ export function SettingsForm({ initial }: { initial: Record<string, string> }) {
       </div>
 
       <div className="rounded-lg border bg-white p-5 space-y-4">
-        <h3 className="font-semibold">Trang chủ &amp; chân trang</h3>
+        <h3 className="font-semibold">Trang chủ, chân trang &amp; cửa hàng</h3>
         {FIELDS.filter((f) => isHomeField(f.key)).map((f) => (
           <div key={f.key} className="space-y-2">
             <Label htmlFor={f.key}>{f.label}</Label>

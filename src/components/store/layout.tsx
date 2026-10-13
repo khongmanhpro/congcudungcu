@@ -75,6 +75,12 @@ export async function StoreHeader() {
           <span>Hotline: <a href={telHref(hotline)} className="font-bold text-[#16a34a] hover:underline">{hotline}</a></span>
           <span className="hidden text-[#cbd5e1] sm:inline">|</span>
           <span className="hidden sm:inline">Email: <a href={`mailto:${email}`} className="font-bold text-[#0f172a] hover:underline">{email}</a></span>
+          <span className="ml-auto hidden items-center gap-4 font-medium md:flex">
+            <Link href="/thuong-hieu" className="hover:text-brand">Thương hiệu</Link>
+            <Link href="/kien-thuc" className="hover:text-brand">Kiến thức</Link>
+            <Link href="/cua-hang" className="hover:text-brand">Cửa hàng</Link>
+            <Link href="/lien-he" className="hover:text-brand">Liên hệ báo giá</Link>
+          </span>
         </div>
       </div>
 
@@ -178,7 +184,12 @@ export async function StoreFooter() {
 
       <div className="border-t border-[#e2e8f0] bg-[#eef2f7]">
         <div className="mx-auto flex max-w-7xl flex-col gap-1 px-3 py-3 text-xs text-[#334155] sm:px-4 md:flex-row md:items-center md:justify-between">
-          <p>© {new Date().getFullYear()} congcudungcu.vn</p>
+          <p>
+            © {new Date().getFullYear()} congcudungcu.vn ·{" "}
+            <Link href="/thuong-hieu" className="hover:text-brand">Thương hiệu</Link> ·{" "}
+            <Link href="/kien-thuc" className="hover:text-brand">Kiến thức</Link> ·{" "}
+            <Link href="/cua-hang" className="hover:text-brand">Cửa hàng</Link>
+          </p>
           <div className="md:text-right">
             <p className="font-bold uppercase text-[#0f172a]">{settings.company_name || "Công Cụ Dụng Cụ"}</p>
             <p className="text-[11px]">{address}</p>

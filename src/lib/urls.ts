@@ -19,6 +19,9 @@ export const productPath = (slug: string) => `/san-pham/${slug}`;
 export const brandPath = (slug: string, categorySlug?: string) => (categorySlug ? `/thuong-hieu/${slug}/${categorySlug}` : `/thuong-hieu/${slug}`);
 export const postPath = (slug: string) => `/kien-thuc/${slug}`;
 
+/** Hãng có ≥ ngưỡng này sản phẩm trong một danh mục thì có trang "hãng × danh mục" riêng (index được). */
+export const BRAND_CATEGORY_MIN = 6;
+
 /**
  * Đoạn đầu URL đã có route riêng → không được dùng làm slug danh mục cấp 1
  * (nếu trùng, route tĩnh sẽ "che" danh mục).

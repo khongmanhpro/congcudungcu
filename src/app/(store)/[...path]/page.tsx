@@ -2,22 +2,21 @@ import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import type { Metadata } from "next";
 import { cache } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getCategorySubtreeIds } from "@/lib/categories";
 import { getProductStats } from "@/lib/product-stats";
 import { POLICIES, getPolicyContent } from "@/lib/policies";
 import { redirectIfMoved } from "@/lib/redirects";
 import { JsonLd, absoluteUrl, breadcrumbJsonLd, pagedPath, toMetaDescription } from "@/lib/seo";
-import { brandPath, categoryPath, productPath } from "@/lib/urls";
+import { BRAND_CATEGORY_MIN, brandPath, categoryPath, productPath } from "@/lib/urls";
 import { ProductCard } from "@/components/store/product-card";
 import { FaqSection, faqJsonLd, parseFaq } from "@/components/store/faq-section";
+import { Pagination } from "@/components/store/pagination";
 
 export const revalidate = 60;
 
 const PAGE_SIZE = 24;
-/** Thương hiệu có ≥ ngưỡng này trong danh mục thì có trang "hãng × danh mục" riêng (index được). */
-export const BRAND_CATEGORY_MIN = 6;
 
 type Params = { params: Promise<{ path: string[] }>; searchParams: Promise<{ page?: string }> };
 
@@ -235,21 +234,7 @@ async function CategoryView({ category, page }: { category: NonNullable<Awaited<
           )}
         </section>
 
-        {totalPages > 1 && (
-          <nav aria-label="Phân trang" className="flex items-center justify-center gap-2 text-sm font-bold">
-            {page > 1 && (
-              <Link href={pagedPath(path, page - 1)} aria-label="Trang trước" className="grid h-9 w-9 place-items-center rounded-md bg-white text-brand hover:bg-brand-50">
-                <ChevronLeft className="h-4 w-4" />
-              </Link>
-            )}
-            <span className="rounded-md bg-brand px-3 py-2 text-white">{page} / {totalPages}</span>
-            {page < totalPages && (
-              <Link href={pagedPath(path, page + 1)} aria-label="Trang sau" className="grid h-9 w-9 place-items-center rounded-md bg-white text-brand hover:bg-brand-50">
-                <ChevronRight className="h-4 w-4" />
-              </Link>
-            )}
-          </nav>
-        )}
+        <Pagination path={path} page={page} totalPages={totalPages} />
 
         {page === 1 && category.content && (
           <section className="rounded-lg border border-gold bg-white p-4">
