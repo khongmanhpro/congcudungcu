@@ -50,3 +50,6 @@ next-env.d.ts
 # Database backups (too large for git)
 *.sql
 congcudungcu-backup.sql
+
+# Dữ liệu xuất từ scripts/export-data.sh (có dữ liệu khách hàng — không commit)
+/data-export/
