@@ -1,8 +1,8 @@
 # congcudungcu-next — Project Guide
 
 ## Stack
-- Next.js 15+ App Router (Turbopack), TypeScript strict
-- Prisma + PostgreSQL (local Docker / Supabase sau)
+- Next.js 16 App Router (Turbopack), TypeScript strict
+- Prisma 7 + PostgreSQL (local Docker / Supabase sau), client generate vào `src/generated/prisma`
 - Tailwind CSS, shadcn/ui (manual components)
 - Tiptap editor (admin posts)
 - Zustand (cart store, persisted)
@@ -15,12 +15,14 @@
 - `pnpm build` — production build (chạy typecheck)
 - `pnpm start` — production server
 - `pnpm lint` — eslint
-- `pnpm prisma:migrate` — tạo migration
-- `pnpm prisma:generate` — regenerate client
-- `pnpm prisma:studio` — DB GUI
+- `pnpm db:migrate` — tạo migration
+- `pnpm db:push` — đẩy schema thẳng vào DB (không tạo migration)
+- `pnpm db:generate` — regenerate client
+- `pnpm db:studio` — DB GUI
 - `pnpm db:seed` — seed dữ liệu mẫu
-- `pnpm tsx scripts/create-admin.ts` — tạo admin user
-- `pnpm tsx scripts/migrate-from-wp.ts` — migrate từ WordPress (cần mysql2)
+- `pnpm exec tsx scripts/create-admin.ts <email> <password>` — tạo/đặt lại mật khẩu admin
+- `pnpm migrate:wp` — migrate từ WordPress (cần mysql2)
+- Docker: `docker-compose up -d --build` (app ở http://localhost:3001); chạy script trong container: `docker-compose run --rm migrate pnpm db:seed`
 
 ## Environment (.env)
 - `DATABASE_URL` — Postgres connection string
