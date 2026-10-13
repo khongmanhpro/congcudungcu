@@ -128,8 +128,8 @@ export default async function BlogPage({ searchParams }: { searchParams: Promise
 
   return (
     <div className="bg-[#f4f7fb] text-[#172033]">
-      <section className="relative overflow-hidden bg-[#063f96] text-white">
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,#063f96_0%,rgba(6,63,150,.92)_42%,rgba(6,63,150,.28)_72%,rgba(6,63,150,.1)_100%)]" />
+      <section className="relative overflow-hidden bg-brand-dark text-white">
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,#061b3d_0%,rgba(0,56,105,.92)_42%,rgba(0,56,105,.28)_72%,rgba(0,56,105,.1)_100%)]" />
         <div className="absolute inset-y-0 right-0 w-[58%] bg-[url('/uploads/2026/05/bosch-scaled-1000x574.jpg')] bg-cover bg-center opacity-45 grayscale" />
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.05)_1px,transparent_1px)] bg-[size:44px_44px] opacity-35" />
         <div className="relative mx-auto max-w-7xl px-4 py-12 sm:py-16">
@@ -151,7 +151,7 @@ export default async function BlogPage({ searchParams }: { searchParams: Promise
       <main className="mx-auto grid max-w-7xl gap-6 px-4 py-7 lg:grid-cols-[270px_minmax(0,1fr)] lg:py-9">
         <aside className="space-y-6">
           <section className="overflow-hidden rounded-md border border-[#dce5f1] bg-white shadow-sm">
-            <div className="flex items-center gap-2 bg-[#0757c9] px-4 py-3 text-sm font-black uppercase text-white">
+            <div className="flex items-center gap-2 bg-brand px-4 py-3 text-sm font-black uppercase text-white">
               <Newspaper className="h-4 w-4" />
               Danh mục tin tức
             </div>
@@ -163,9 +163,9 @@ export default async function BlogPage({ searchParams }: { searchParams: Promise
                   <Link
                     key={topic.value}
                     href={active ? "/tin-tuc" : `/tin-tuc?topic=${topic.value}`}
-                    className={`flex items-center gap-3 px-4 py-3 text-sm font-semibold transition hover:bg-[#f0f6ff] hover:text-[#0757c9] ${active ? "bg-[#f0f6ff] text-[#0757c9]" : "text-[#344054]"}`}
+                    className={`flex items-center gap-3 px-4 py-3 text-sm font-semibold transition hover:bg-brand-50 hover:text-brand ${active ? "bg-brand-50 text-brand" : "text-[#344054]"}`}
                   >
-                    <Icon className="h-4 w-4 shrink-0 text-[#0757c9]" />
+                    <Icon className="h-4 w-4 shrink-0 text-brand" />
                     <span className="flex-1">{topic.label}</span>
                     <ChevronRight className="h-4 w-4 text-[#98a2b3]" />
                   </Link>
@@ -176,14 +176,14 @@ export default async function BlogPage({ searchParams }: { searchParams: Promise
 
           {featuredPosts.length > 0 && (
             <section className="overflow-hidden rounded-md border border-[#dce5f1] bg-white shadow-sm">
-              <div className="bg-[#0757c9] px-4 py-3 text-sm font-black uppercase text-white">Bài viết nổi bật</div>
+              <div className="bg-brand px-4 py-3 text-sm font-black uppercase text-white">Bài viết nổi bật</div>
               <div className="space-y-3 p-3">
                 {featuredPosts.map((post, index) => (
                   <Link key={post.id} href={`/tin-tuc/${post.slug}`} className="group grid grid-cols-[72px_1fr] gap-3">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={getPostImage(post, index)} alt={post.title} className="h-16 w-full rounded object-cover" />
                     <span className="min-w-0">
-                      <span className="line-clamp-2 text-xs font-black leading-5 text-[#172033] group-hover:text-[#0757c9]">{post.title}</span>
+                      <span className="line-clamp-2 text-xs font-black leading-5 text-[#172033] group-hover:text-brand">{post.title}</span>
                       <span className="mt-1 block text-xs text-[#667085]">{formatDate(post.publishedAt || post.createdAt)}</span>
                     </span>
                   </Link>
@@ -198,7 +198,7 @@ export default async function BlogPage({ searchParams }: { searchParams: Promise
               <Headphones className="h-8 w-8 text-[#9fd3ff]" />
               <h2 className="mt-4 text-xl font-black uppercase leading-snug">Cần tư vấn chọn mua dụng cụ?</h2>
               <p className="mt-3 text-sm leading-6 text-white/82">Đội ngũ chuyên gia luôn sẵn sàng hỗ trợ chọn giải pháp phù hợp.</p>
-              <a href="tel:+84978390339" className="mt-5 flex h-11 items-center justify-center rounded bg-[#0757c9] text-sm font-black text-white hover:bg-[#003f9c]">
+              <a href="tel:+84978390339" className="mt-5 flex h-11 items-center justify-center rounded bg-brand text-sm font-black text-white hover:bg-[#003f9c]">
                 +84 978.39.03.39
               </a>
             </div>
@@ -214,7 +214,7 @@ export default async function BlogPage({ searchParams }: { searchParams: Promise
             </p>
             <div className="flex items-center gap-3 text-sm">
               <span className="font-medium text-[#667085]">Sắp xếp:</span>
-              <Link href={pageHref(1, sort === "newest" ? "oldest" : "newest", currentTopic)} className="rounded border border-[#dce5f1] bg-white px-4 py-2 font-semibold text-[#172033] hover:border-[#0757c9] hover:text-[#0757c9]">
+              <Link href={pageHref(1, sort === "newest" ? "oldest" : "newest", currentTopic)} className="rounded border border-[#dce5f1] bg-white px-4 py-2 font-semibold text-[#172033] hover:border-brand hover:text-brand">
                 {sort === "newest" ? "Mới nhất" : "Cũ nhất"}
               </Link>
             </div>
@@ -222,7 +222,7 @@ export default async function BlogPage({ searchParams }: { searchParams: Promise
 
           {posts.length === 0 ? (
             <div className="rounded-md border border-[#dce5f1] bg-white p-8 text-center">
-              <Wrench className="mx-auto h-10 w-10 text-[#0757c9]" />
+              <Wrench className="mx-auto h-10 w-10 text-brand" />
               <h2 className="mt-3 text-lg font-black">Chưa có bài viết phù hợp</h2>
               <p className="mt-2 text-sm text-[#667085]">Hãy chọn danh mục khác hoặc quay lại danh sách tin tức.</p>
             </div>
@@ -236,19 +236,19 @@ export default async function BlogPage({ searchParams }: { searchParams: Promise
 
           {totalPages > 1 && (
             <nav className="mt-8 flex items-center justify-center gap-2">
-              <Link href={pageHref(Math.max(1, safePage - 1), sort, currentTopic)} className="grid h-10 w-10 place-items-center rounded border border-[#dce5f1] bg-white text-[#0757c9] hover:border-[#0757c9]">
+              <Link href={pageHref(Math.max(1, safePage - 1), sort, currentTopic)} className="grid h-10 w-10 place-items-center rounded border border-[#dce5f1] bg-white text-brand hover:border-brand">
                 <ChevronLeft className="h-4 w-4" />
               </Link>
               {Array.from({ length: Math.min(totalPages, 6) }).map((_, index) => {
                 const page = index + 1;
                 return (
-                  <Link key={page} href={pageHref(page, sort, currentTopic)} className={`grid h-10 w-10 place-items-center rounded text-sm font-black ${safePage === page ? "bg-[#0757c9] text-white" : "bg-white text-[#0757c9] hover:bg-[#f0f6ff]"}`}>
+                  <Link key={page} href={pageHref(page, sort, currentTopic)} className={`grid h-10 w-10 place-items-center rounded text-sm font-black ${safePage === page ? "bg-brand text-white" : "bg-white text-brand hover:bg-brand-50"}`}>
                     {page}
                   </Link>
                 );
               })}
               {totalPages > 6 && <span className="px-2 text-[#667085]">...</span>}
-              <Link href={pageHref(Math.min(totalPages, safePage + 1), sort, currentTopic)} className="grid h-10 w-10 place-items-center rounded border border-[#dce5f1] bg-white text-[#0757c9] hover:border-[#0757c9]">
+              <Link href={pageHref(Math.min(totalPages, safePage + 1), sort, currentTopic)} className="grid h-10 w-10 place-items-center rounded border border-[#dce5f1] bg-white text-brand hover:border-brand">
                 <ChevronRight className="h-4 w-4" />
               </Link>
             </nav>
@@ -259,15 +259,15 @@ export default async function BlogPage({ searchParams }: { searchParams: Promise
       <section className="border-t border-[#dce5f1] bg-white">
         <div className="mx-auto grid max-w-7xl gap-4 px-4 py-7 md:grid-cols-[1fr_420px] md:items-center">
           <div className="flex items-center gap-4">
-            <div className="grid h-14 w-14 shrink-0 place-items-center rounded bg-[#eef5ff] text-[#0757c9]">
+            <div className="grid h-14 w-14 shrink-0 place-items-center rounded bg-[#eef5ff] text-brand">
               <Mail className="h-7 w-7" />
             </div>
             <div>
-              <h2 className="text-lg font-black uppercase text-[#0757c9]">Đăng ký nhận tin</h2>
+              <h2 className="text-lg font-black uppercase text-brand">Đăng ký nhận tin</h2>
               <p className="text-sm text-[#667085]">Nhận thông tin sản phẩm mới, khuyến mãi và tin tức từ chúng tôi.</p>
             </div>
           </div>
-          <div className="[&_form]:max-w-none [&_form]:border [&_form]:border-[#dce5f1] [&_button]:bg-[#0757c9] [&_button:hover]:bg-[#0048a8]">
+          <div className="[&_form]:max-w-none [&_form]:border [&_form]:border-[#dce5f1] [&_button]:bg-brand [&_button:hover]:bg-brand-dark">
             <NewsletterForm />
           </div>
         </div>
@@ -282,12 +282,12 @@ function ArticleCard({ post, index }: { post: BlogPost; index: number }) {
       <div className="relative aspect-[1.55] overflow-hidden bg-[#d8e5f5]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={getPostImage(post, index)} alt={post.title} className="h-full w-full object-cover transition duration-300 group-hover:scale-105" />
-        <div className="absolute left-3 top-3 rounded bg-white/92 px-2 py-1 text-xs font-black text-[#0757c9]">{formatDate(post.publishedAt || post.createdAt)}</div>
+        <div className="absolute left-3 top-3 rounded bg-white/92 px-2 py-1 text-xs font-black text-brand">{formatDate(post.publishedAt || post.createdAt)}</div>
       </div>
       <div className="p-4">
-        <h2 className="line-clamp-2 min-h-[48px] text-base font-black leading-6 text-[#172033] group-hover:text-[#0757c9]">{post.title}</h2>
+        <h2 className="line-clamp-2 min-h-[48px] text-base font-black leading-6 text-[#172033] group-hover:text-brand">{post.title}</h2>
         <p className="mt-3 line-clamp-3 min-h-[60px] text-sm leading-5 text-[#667085]">{getExcerpt(post)}</p>
-        <span className="mt-4 inline-flex items-center gap-1 text-sm font-black text-[#0757c9]">
+        <span className="mt-4 inline-flex items-center gap-1 text-sm font-black text-brand">
           Xem chi tiết <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
         </span>
       </div>

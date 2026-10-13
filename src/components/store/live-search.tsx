@@ -87,7 +87,7 @@ export function LiveSearch({ categories = [] }: { categories?: SearchCategory[] 
   return (
     <div ref={containerRef} className="relative order-3 w-full max-w-2xl flex-none md:order-none md:flex-1">
       <form onSubmit={submit}>
-        <div className="relative flex h-11 overflow-visible rounded-md border border-[#dce5f1] bg-white shadow-sm md:h-12">
+        <div className="relative flex h-11 overflow-visible rounded-md border-2 border-brand bg-white md:h-12">
           <input
             type="search"
             value={q}
@@ -115,7 +115,7 @@ export function LiveSearch({ categories = [] }: { categories?: SearchCategory[] 
                 setCategoryOpen((value) => !value);
                 setOpen(false);
               }}
-              className="flex h-full min-w-44 items-center justify-between gap-2 border-l border-[#edf1f7] px-4 text-sm font-medium text-[#344054] hover:bg-[#f8fbff] hover:text-[#0757c9]"
+              className="flex h-full min-w-44 items-center justify-between gap-2 border-l border-[#edf1f7] px-4 text-sm font-medium text-[#344054] hover:bg-brand-50 hover:text-brand"
               aria-expanded={categoryOpen}
             >
               <span className="line-clamp-1 max-w-36 text-left">{selectedCategory?.name || "Tất cả danh mục"}</span>
@@ -127,7 +127,7 @@ export function LiveSearch({ categories = [] }: { categories?: SearchCategory[] 
                 <button
                   type="button"
                   onClick={() => selectCategory(null)}
-                  className={`block w-full px-4 py-2.5 text-left text-sm font-semibold hover:bg-[#f0f6ff] hover:text-[#0757c9] ${!selectedCategory ? "bg-[#f0f6ff] text-[#0757c9]" : "text-[#344054]"}`}
+                  className={`block w-full px-4 py-2.5 text-left text-sm font-semibold hover:bg-brand-50 hover:text-brand ${!selectedCategory ? "bg-brand-50 text-brand" : "text-[#344054]"}`}
                 >
                   Tất cả danh mục
                 </button>
@@ -137,7 +137,7 @@ export function LiveSearch({ categories = [] }: { categories?: SearchCategory[] 
                       key={category.id}
                       type="button"
                       onClick={() => selectCategory(category)}
-                      className={`block w-full px-4 py-2.5 text-left text-sm font-semibold hover:bg-[#f0f6ff] hover:text-[#0757c9] ${selectedCategory?.id === category.id ? "bg-[#f0f6ff] text-[#0757c9]" : "text-[#344054]"}`}
+                      className={`block w-full px-4 py-2.5 text-left text-sm font-semibold hover:bg-brand-50 hover:text-brand ${selectedCategory?.id === category.id ? "bg-brand-50 text-brand" : "text-[#344054]"}`}
                     >
                       {category.name}
                     </button>
@@ -147,7 +147,7 @@ export function LiveSearch({ categories = [] }: { categories?: SearchCategory[] 
             )}
           </div>
 
-          <button type="submit" className="flex h-full w-12 shrink-0 items-center justify-center rounded-r-md bg-[#0757c9] text-white hover:bg-[#0048a8] md:w-14">
+          <button type="submit" className="flex h-full w-12 shrink-0 items-center justify-center rounded-r-md bg-brand text-white hover:bg-brand-dark md:w-14">
             <Search className="h-5 w-5" />
           </button>
         </div>

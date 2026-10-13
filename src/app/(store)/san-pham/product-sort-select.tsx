@@ -21,7 +21,7 @@ export function ProductSortSelect({ value }: { value: string }) {
       name="sort"
       value={value}
       onChange={(event) => changeSort(event.target.value)}
-      className="h-10 min-w-0 flex-1 rounded-md border border-[#dce5f1] bg-white px-3 text-sm text-[#172033] outline-none focus:border-[#0757c9] sm:min-w-40 sm:flex-none"
+      className="h-10 min-w-0 flex-1 rounded-md border border-[#dce5f1] bg-white px-3 text-sm text-[#172033] outline-none focus:border-brand sm:min-w-40 sm:flex-none"
     >
       <option value="newest">Mới nhất</option>
       <option value="price-asc">Giá thấp đến cao</option>

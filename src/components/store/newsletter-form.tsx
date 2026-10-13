@@ -41,7 +41,7 @@ export function NewsletterForm() {
       <button
         type="submit"
         disabled={status === "sending"}
-        className="bg-[#ff7417] px-5 py-2 text-sm font-bold text-white hover:bg-[#ff6500] disabled:opacity-50"
+        className="bg-gold px-5 py-2 text-sm font-bold text-white hover:bg-gold-dark disabled:opacity-50"
       >
         {status === "sending" ? "..." : "Đăng ký"}
       </button>

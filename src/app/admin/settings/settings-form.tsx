@@ -16,6 +16,9 @@ const FIELDS = [
   { key: "contact_address", label: "Địa chỉ", type: "input" },
   { key: "social_facebook", label: "Facebook URL", type: "input" },
   { key: "social_youtube", label: "YouTube URL", type: "input" },
+  { key: "contact_zalo", label: "Zalo (link chat, vd https://zalo.me/0978390339)", type: "input" },
+  { key: "social_messenger", label: "Messenger (link chat, vd https://m.me/tenpage)", type: "input" },
+  { key: "home_youtube_videos", label: "Video trang chủ (ID hoặc link YouTube, cách nhau dấu phẩy)", type: "input" },
   { key: "seo_title", label: "SEO Title", type: "input" },
   { key: "seo_description", label: "SEO Description", type: "textarea" },
   { key: "vnpay_tmncode", label: "VNPay TmnCode", type: "input" },
@@ -54,7 +57,7 @@ export function SettingsForm({ initial }: { initial: Record<string, string> }) {
       <div className="rounded-lg border bg-white p-5 space-y-4">
         <h3 className="font-semibold">Thông tin chung</h3>
         <div className="grid gap-4 md:grid-cols-2">
-          {FIELDS.slice(0, 9).map((f) => (
+          {FIELDS.slice(0, 12).map((f) => (
             <div key={f.key} className="space-y-2">
               <Label htmlFor={f.key}>{f.label}</Label>
               <Input

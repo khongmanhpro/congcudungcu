@@ -37,8 +37,8 @@ export function ProductDetailTabs({
             onClick={() => setActive(tab.id)}
             className={`shrink-0 border-b-2 px-4 py-3 text-left transition sm:px-6 sm:py-4 ${
               active === tab.id
-                ? "border-[#0757c9] text-[#0757c9]"
-                : "border-transparent hover:text-[#0757c9]"
+                ? "border-brand text-brand"
+                : "border-transparent hover:text-brand"
             }`}
           >
             {tab.label}
@@ -69,7 +69,7 @@ export function ProductDetailTabs({
                 <table className="w-full border-collapse text-sm">
                   <tbody>
                     {specsItems.map((item, index) => (
-                      <tr key={`${item.label}-${index}`} className={index % 2 === 0 ? "bg-[#f8fbff]" : "bg-white"}>
+                      <tr key={`${item.label}-${index}`} className={index % 2 === 0 ? "bg-brand-50" : "bg-white"}>
                         <td className="w-1/3 border-b border-[#dce5f1] px-4 py-3 font-bold text-[#667085]">{item.label}</td>
                         <td className="border-b border-[#dce5f1] px-4 py-3 text-[#172033]">{item.value}</td>
                       </tr>
@@ -90,9 +90,9 @@ export function ProductDetailTabs({
         )}
 
         {active === "qa" && (
-          <section className="rounded-md bg-[#f8fbff] p-5">
+          <section className="rounded-md bg-brand-50 p-5">
             <div className="flex items-start gap-4">
-              <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#eaf3ff] text-[#0757c9]">
+              <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-brand-50 text-brand">
                 <HelpCircle className="h-5 w-5" />
               </div>
               <div>
@@ -102,7 +102,7 @@ export function ProductDetailTabs({
                 </p>
                 <Link
                   href="/lien-he"
-                  className="mt-5 inline-flex h-11 items-center gap-2 rounded bg-[#0757c9] px-5 text-sm font-black uppercase text-white hover:bg-[#0048a8]"
+                  className="mt-5 inline-flex h-11 items-center gap-2 rounded bg-brand px-5 text-sm font-black uppercase text-white hover:bg-brand-dark"
                 >
                   <MessageSquareText className="h-4 w-4" />
                   Gửi câu hỏi
@@ -113,7 +113,7 @@ export function ProductDetailTabs({
         )}
 
         {active === "reviews" && (
-          <div className="mt-6 hidden rounded-md bg-[#f8fbff] p-5 text-[#ffae00] lg:block">
+          <div className="mt-6 hidden rounded-md bg-brand-50 p-5 text-[#ffae00] lg:block">
             {Array.from({ length: 5 }).map((_, index) => (
               <Star key={index} className="inline h-4 w-4 fill-current" />
             ))}

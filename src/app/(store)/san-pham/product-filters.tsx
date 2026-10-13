@@ -36,7 +36,7 @@ function FiltersInner({ categories, brands, current }: Props) {
   return (
     <>
       <section className="overflow-hidden rounded-md border border-[#dce5f1] bg-white shadow-sm">
-        <div className="flex items-center gap-2 bg-[#0757c9] px-4 py-3 text-sm font-black uppercase text-white">
+        <div className="flex items-center gap-2 bg-brand px-4 py-3 text-sm font-black uppercase text-white">
           <Menu className="h-4 w-4" />
           Danh mục sản phẩm
         </div>
@@ -45,7 +45,7 @@ function FiltersInner({ categories, brands, current }: Props) {
             <button
               key={category.id}
               onClick={() => apply({ category: current.category === category.id ? null : category.id })}
-              className={`flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm font-semibold transition hover:bg-[#f0f6ff] hover:text-[#0757c9] ${current.category === category.id ? "bg-[#f0f6ff] text-[#0757c9]" : "text-[#253044]"}`}
+              className={`flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm font-semibold transition hover:bg-brand-50 hover:text-brand ${current.category === category.id ? "bg-brand-50 text-brand" : "text-[#253044]"}`}
             >
               <Wrench className="h-4 w-4 shrink-0 text-[#667085]" />
               <span className="line-clamp-1 flex-1">{category.name}</span>
@@ -54,14 +54,14 @@ function FiltersInner({ categories, brands, current }: Props) {
           ))}
         </div>
         <div className="p-3">
-          <button onClick={() => apply({ category: null })} className="h-10 w-full rounded border border-[#0757c9] text-sm font-bold text-[#0757c9] hover:bg-[#f0f6ff]">
+          <button onClick={() => apply({ category: null })} className="h-10 w-full rounded border border-brand text-sm font-bold text-brand hover:bg-brand-50">
             Xem tất cả danh mục
           </button>
         </div>
       </section>
 
       <section className="overflow-hidden rounded-md border border-[#dce5f1] bg-white shadow-sm">
-        <div className="flex items-center gap-2 bg-[#0757c9] px-4 py-3 text-sm font-black uppercase text-white">
+        <div className="flex items-center gap-2 bg-brand px-4 py-3 text-sm font-black uppercase text-white">
           <SlidersHorizontal className="h-4 w-4" />
           Bộ lọc sản phẩm
         </div>
@@ -74,7 +74,7 @@ function FiltersInner({ categories, brands, current }: Props) {
                   type="checkbox"
                   checked={current.brand === brand.id}
                   onChange={() => apply({ brand: current.brand === brand.id ? null : brand.id })}
-                  className="h-4 w-4 rounded border-[#d0d5dd] accent-[#0757c9]"
+                  className="h-4 w-4 rounded border-[#d0d5dd] accent-brand"
                 />
                 {brand.name}
               </span>
@@ -82,7 +82,7 @@ function FiltersInner({ categories, brands, current }: Props) {
             </label>
           ))}
           {brands.length > 5 && (
-            <button type="button" onClick={() => setShowAllBrands((value) => !value)} className="text-left text-xs font-bold text-[#0757c9]">
+            <button type="button" onClick={() => setShowAllBrands((value) => !value)} className="text-left text-xs font-bold text-brand">
               {showAllBrands ? "- Thu gọn" : "+ Xem thêm"}
             </button>
           )}
@@ -91,9 +91,9 @@ function FiltersInner({ categories, brands, current }: Props) {
         <FilterGroup title="Khoảng giá">
           <div className="relative h-5">
             <div className="absolute left-0 right-0 top-2 h-1 rounded bg-[#dbeafe]" />
-            <div className="absolute left-0 right-0 top-2 h-1 rounded bg-[#0757c9]" />
-            <div className="absolute left-0 top-0 h-5 w-5 rounded-full bg-[#0757c9]" />
-            <div className="absolute right-0 top-0 h-5 w-5 rounded-full bg-[#0757c9]" />
+            <div className="absolute left-0 right-0 top-2 h-1 rounded bg-brand" />
+            <div className="absolute left-0 top-0 h-5 w-5 rounded-full bg-brand" />
+            <div className="absolute right-0 top-0 h-5 w-5 rounded-full bg-brand" />
           </div>
           <div className="text-center text-xs text-[#667085]">100,000đ - 50,000,000đ</div>
           <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
@@ -111,7 +111,7 @@ function FiltersInner({ categories, brands, current }: Props) {
               onChange={(event) => setMaxPrice(cleanPrice(event.target.value))}
             />
           </div>
-          <button onClick={() => apply({ minPrice: minPrice || null, maxPrice: maxPrice || null })} className="h-10 rounded bg-[#0757c9] text-sm font-bold text-white hover:bg-[#0048a8]">
+          <button onClick={() => apply({ minPrice: minPrice || null, maxPrice: maxPrice || null })} className="h-10 w-full rounded bg-brand text-sm font-bold text-white hover:bg-brand-dark">
             Lọc
           </button>
         </FilterGroup>
@@ -127,7 +127,7 @@ function FiltersInner({ categories, brands, current }: Props) {
                   type="checkbox"
                   checked={current.availability === value}
                   onChange={() => apply({ availability: current.availability === value ? null : value })}
-                  className="h-4 w-4 rounded border-[#d0d5dd] accent-[#0757c9]"
+                  className="h-4 w-4 rounded border-[#d0d5dd] accent-brand"
                 />
                 {label}
               </span>
@@ -138,10 +138,10 @@ function FiltersInner({ categories, brands, current }: Props) {
       </section>
 
       <section className="rounded-md border border-[#dce5f1] bg-white p-4 text-center shadow-sm">
-        <Headphones className="mx-auto h-8 w-8 text-[#0757c9]" />
-        <h3 className="mt-2 text-sm font-black uppercase text-[#0757c9]">Cần tư vấn?</h3>
+        <Headphones className="mx-auto h-8 w-8 text-brand" />
+        <h3 className="mt-2 text-sm font-black uppercase text-brand">Cần tư vấn?</h3>
         <p className="mt-1 text-xs text-[#667085]">Đội ngũ chuyên viên sẵn sàng hỗ trợ bạn</p>
-        <a href="tel:+84978390339" className="mt-4 flex h-10 items-center justify-center rounded bg-[#0757c9] text-sm font-bold text-white hover:bg-[#0048a8]">
+        <a href="tel:+84978390339" className="mt-4 flex h-10 items-center justify-center rounded bg-brand text-sm font-bold text-white hover:bg-brand-dark">
           +84 978.39.03.39
         </a>
       </section>

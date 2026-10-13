@@ -1,5 +1,13 @@
 import type { Metadata } from "next";
+import { Quicksand } from "next/font/google";
 import "./globals.css";
+
+const quicksand = Quicksand({
+  subsets: ["latin", "vietnamese"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-quicksand",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: {
@@ -35,7 +43,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="vi" className="h-full antialiased">
+    <html lang="vi" className={`h-full antialiased ${quicksand.variable}`}>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );

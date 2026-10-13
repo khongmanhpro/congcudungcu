@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ProductCard } from "@/components/store/product-card";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { formatVND } from "@/lib/format";
@@ -88,8 +89,8 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
       categoryId: product.categoryId,
       id: { not: product.id },
     },
-    take: 4,
-    include: { images: { take: 1, orderBy: { position: "asc" } } },
+    take: 6,
+    include: { images: { take: 1, orderBy: { position: "asc" } }, brand: { select: { name: true } } },
   }).catch(() => []);
 
   const jsonLd = {
@@ -123,13 +124,13 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
       <div className="mx-auto max-w-7xl px-3 py-5 sm:px-4 sm:py-6">
         <nav className="mb-4 flex flex-nowrap items-center gap-2 overflow-x-auto whitespace-nowrap text-xs text-[#667085] sm:mb-5 sm:flex-wrap sm:text-sm">
-          <Link href="/" className="hover:text-[#0757c9]">Trang chủ</Link>
+          <Link href="/" className="hover:text-brand">Trang chủ</Link>
           <ChevronRight className="h-4 w-4" />
-          <Link href="/san-pham" className="hover:text-[#0757c9]">Sản phẩm</Link>
+          <Link href="/san-pham" className="hover:text-brand">Sản phẩm</Link>
           {product.category && (
             <>
               <ChevronRight className="h-4 w-4" />
-              <Link href={`/danh-muc/${product.category.slug}`} className="hover:text-[#0757c9]">{product.category.name}</Link>
+              <Link href={`/danh-muc/${product.category.slug}`} className="hover:text-brand">{product.category.name}</Link>
             </>
           )}
           <ChevronRight className="h-4 w-4" />
@@ -143,10 +144,10 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_270px]">
               <div>
                 <div className="mb-2 flex flex-wrap items-center gap-3">
-                  {product.brand && <span className="text-lg font-black uppercase text-[#ef233c]">{product.brand.name}</span>}
+                  {product.brand && <span className="text-lg font-black uppercase text-price">{product.brand.name}</span>}
                   {product.brand && <span className="text-sm text-[#667085]">Thương hiệu</span>}
                 </div>
-                <h1 className="text-xl font-black leading-tight text-[#172033] md:text-3xl">{product.name}</h1>
+                <h1 className="text-xl font-bold leading-snug text-[#172033] md:text-2xl">{product.name}</h1>
 
                 <div className="mt-3 flex flex-wrap items-center gap-4 text-sm">
                   <span className="flex items-center gap-1 text-[#ffae00]">
@@ -164,7 +165,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                       <CheckCircle2 className="h-4 w-4" /> Còn hàng
                     </span>
                   ) : (
-                    <span className="font-semibold text-[#ef233c]">Hết hàng</span>
+                    <span className="font-semibold text-price">Hết hàng</span>
                   )}
                   {product.stock > 0 && <span className="text-[#667085]">Tồn kho: {product.stock} sản phẩm</span>}
                 </div>
@@ -172,7 +173,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                 {featureChips.length > 0 && (
                   <div className="mt-4 flex flex-wrap gap-2">
                     {featureChips.map((item) => (
-                      <span key={`${item.label}-${item.value}`} className="rounded bg-[#f0f6ff] px-3 py-1.5 text-xs font-semibold text-[#344054]">
+                      <span key={`${item.label}-${item.value}`} className="rounded bg-brand-50 px-3 py-1.5 text-xs font-semibold text-[#344054]">
                         {item.value}
                       </span>
                     ))}
@@ -181,10 +182,10 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
                 <div className="mt-6 border-t border-[#edf1f7] pt-5">
                   {product.salePrice && product.salePrice > 0 && <div className="text-sm text-[#667085] line-through">{formatVND(product.price)}</div>}
-                  <div className="mt-1 text-3xl font-black text-[#ff1f00] sm:text-4xl">{hasPrice ? formatVND(displayPrice) : "Liên hệ"}</div>
-                  <div className="mt-2 text-sm text-[#667085]">{hasPrice ? "Giá đã bao gồm VAT" : "Sản phẩm chưa có giá trong database"}</div>
+                  <div className="mt-1 text-3xl font-black text-price sm:text-4xl">{hasPrice ? formatVND(displayPrice) : "Liên hệ"}</div>
+                  <div className="mt-2 text-sm text-[#667085]">{hasPrice ? "Giá đã bao gồm VAT" : "Liên hệ để nhận báo giá tốt nhất"}</div>
                   {savings > 0 && (
-                    <div className="mt-3 inline-flex rounded bg-[#fff1f1] px-3 py-1.5 text-sm font-semibold text-[#ef233c]">
+                    <div className="mt-3 inline-flex rounded bg-[#fff1f1] px-3 py-1.5 text-sm font-semibold text-price">
                       Tiết kiệm: {formatVND(savings)} {discount ? `(${discount}%)` : ""}
                     </div>
                   )}
@@ -210,7 +211,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                     price: product.price,
                     salePrice: product.salePrice,
                     image: product.images[0]?.url || null,
-                  }} className="justify-center border-0 px-0 text-[#344054] hover:bg-transparent hover:text-[#0757c9]" />
+                  }} className="justify-center border-0 px-0 text-[#344054] hover:bg-transparent hover:text-brand" />
                   <CompareButton product={{
                     id: product.id,
                     name: product.name,
@@ -220,7 +221,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                     image: product.images[0]?.url || null,
                     brand: product.brand?.name || null,
                     specs: specsItems,
-                  }} className="justify-center border-0 px-0 text-[#344054] hover:bg-transparent hover:text-[#0757c9]" />
+                  }} className="justify-center border-0 px-0 text-[#344054] hover:bg-transparent hover:text-brand" />
                 </div>
               </div>
 
@@ -232,7 +233,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                   { icon: Headphones, title: "Hỗ trợ kỹ thuật 24/7", desc: "Tư vấn và hỗ trợ chuyên nghiệp" },
                 ].map((item) => (
                   <div key={item.title} className="flex gap-3">
-                    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#f0f6ff] text-[#0757c9]">
+                    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-brand-50 text-brand">
                       <item.icon className="h-5 w-5" />
                     </div>
                     <div>
@@ -255,9 +256,9 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
               { icon: RotateCcw, title: "Đổi trả dễ dàng", desc: "Đổi trả trong 7 ngày" },
             ].map((item) => (
               <div key={item.title} className="flex items-center gap-3 sm:gap-4">
-                <item.icon className="h-7 w-7 shrink-0 text-[#0757c9] sm:h-9 sm:w-9" />
+                <item.icon className="h-7 w-7 shrink-0 text-brand sm:h-9 sm:w-9" />
                 <div>
-                  <div className="text-xs font-black uppercase text-[#0757c9] sm:text-sm">{item.title}</div>
+                  <div className="text-xs font-black uppercase text-brand sm:text-sm">{item.title}</div>
                   <div className="text-xs text-[#667085]">{item.desc}</div>
                 </div>
               </div>
@@ -276,18 +277,18 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
       {related.length > 0 && (
         <section className="mt-6 sm:mt-8">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-base font-black uppercase text-[#0757c9] sm:text-xl">Sản phẩm liên quan</h2>
-            <Link href="/san-pham" className="text-sm font-bold text-[#0757c9] hover:underline">Xem tất cả →</Link>
+            <h2 className="text-base font-black uppercase text-brand sm:text-xl">Sản phẩm liên quan</h2>
+            <Link href="/san-pham" className="text-sm font-bold text-brand hover:underline">Xem tất cả →</Link>
           </div>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
             {related.map((p) => (
-              <RelatedProductCard key={p.id} product={p} />
+              <ProductCard key={p.id} product={p} />
             ))}
           </div>
         </section>
       )}
 
-        <section className="mt-6 overflow-hidden rounded-md bg-[#063f96] text-white sm:mt-8">
+        <section className="mt-6 overflow-hidden rounded-md bg-brand-dark text-white sm:mt-8">
           <div className="grid items-center gap-4 px-4 py-5 md:grid-cols-[1fr_auto_auto] md:px-5 md:py-6">
             <div>
               <h2 className="text-lg font-black uppercase sm:text-xl">Cần tư vấn chọn dụng cụ phù hợp?</h2>
@@ -303,48 +304,5 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         </section>
       </div>
     </div>
-  );
-}
-
-function RelatedProductCard({
-  product,
-}: {
-  product: {
-    id: string;
-    name: string;
-    slug: string;
-    price: number;
-    salePrice: number | null;
-    images: { url: string; alt?: string | null }[];
-  };
-}) {
-  const displayPrice = product.salePrice && product.salePrice > 0 ? product.salePrice : product.price;
-  const hasPrice = displayPrice > 0;
-  const discount = product.salePrice && product.salePrice > 0 && product.price > product.salePrice
-    ? Math.round((1 - product.salePrice / product.price) * 100)
-    : null;
-
-  return (
-    <Link href={`/san-pham/${product.slug}`} className="group relative rounded-md border border-[#dce5f1] bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-[#0757c9] hover:shadow-lg">
-      {discount ? (
-        <span className="absolute left-3 top-3 z-10 rounded bg-[#ef233c] px-2 py-1 text-xs font-black text-white">-{discount}%</span>
-      ) : null}
-      <div className="aspect-square overflow-hidden rounded bg-white">
-        {product.images[0] ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={product.images[0].url} alt={product.images[0].alt || product.name} className="h-full w-full object-contain p-4 transition group-hover:scale-105" />
-        ) : (
-          <div className="flex h-full items-center justify-center bg-[#f4f7fb] text-sm text-[#98a2b3]">No image</div>
-        )}
-      </div>
-      <h3 className="mt-3 line-clamp-2 min-h-10 text-sm font-bold leading-5 text-[#172033] group-hover:text-[#0757c9]">{product.name}</h3>
-      <div className="mt-2 flex items-center gap-1 text-[#ffae00]">
-        {Array.from({ length: 5 }).map((_, index) => (
-          <Star key={index} className="h-3.5 w-3.5 fill-current" />
-        ))}
-      </div>
-      <div className="mt-3 text-lg font-black text-[#ff1f00]">{hasPrice ? formatVND(displayPrice) : "Liên hệ"}</div>
-      {product.salePrice && product.salePrice > 0 ? <div className="text-xs text-[#98a2b3] line-through">{formatVND(product.price)}</div> : null}
-    </Link>
   );
 }
