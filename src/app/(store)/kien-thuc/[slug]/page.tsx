@@ -121,9 +121,9 @@ export default async function PostDetailPage({ params }: { params: Promise<{ slu
             <h1 className="mt-1 text-2xl font-black leading-tight text-[#0f172a] sm:text-3xl">{post.title}</h1>
             {post.excerpt && <p className="mt-3 text-base leading-7 text-[#334155]">{post.excerpt}</p>}
             {post.coverImage && (
-              // eslint-disable-next-line @next/next/no-img-element
               // khung cao cố định → không đẩy nội dung khi ảnh tải xong (CLS)
               <div className="mt-4 h-64 w-full sm:h-72">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={post.coverImage} alt={post.title} fetchPriority="high" className="h-full w-full rounded-md bg-white object-contain" />
               </div>
             )}
