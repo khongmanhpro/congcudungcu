@@ -122,7 +122,10 @@ export default async function PostDetailPage({ params }: { params: Promise<{ slu
             {post.excerpt && <p className="mt-3 text-base leading-7 text-[#334155]">{post.excerpt}</p>}
             {post.coverImage && (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={post.coverImage} alt={post.title} className="mx-auto mt-4 max-h-72 w-auto max-w-full rounded-md bg-white object-contain" />
+              // khung cao cố định → không đẩy nội dung khi ảnh tải xong (CLS)
+              <div className="mt-4 h-64 w-full sm:h-72">
+                <img src={post.coverImage} alt={post.title} fetchPriority="high" className="h-full w-full rounded-md bg-white object-contain" />
+              </div>
             )}
             <div className="rich-content mt-5 max-w-none" dangerouslySetInnerHTML={{ __html: contentHtml }} />
           </article>
