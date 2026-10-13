@@ -179,7 +179,7 @@ export default async function AdminDashboard() {
         <div className="rounded-md border border-[#d8e0ec] bg-white p-5 lg:col-span-2">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-black text-[#172033]">Doanh thu 7 ngày qua</h2>
-            <div className="flex items-center gap-1 text-sm font-bold text-[#16a34a]">
+            <div className="flex items-center gap-1 text-sm font-bold text-[#15803d]">
               <TrendingUp className="h-4 w-4" />
               {formatVND(weekRevenue)}
             </div>
@@ -314,10 +314,10 @@ export default async function AdminDashboard() {
             ].map((item) => (
               <Link key={item.label} href={item.href} className="flex items-center justify-between rounded border border-[#edf1f7] px-3 py-2 text-sm hover:border-[#0757c9] hover:bg-[#f7faff]">
                 <span className="flex items-center gap-2 font-bold text-[#344054]">
-                  {item.value === 0 ? <CheckCircle2 className="h-4 w-4 text-[#16a34a]" /> : <AlertTriangle className="h-4 w-4 text-[#ff7417]" />}
+                  {item.value === 0 ? <CheckCircle2 className="h-4 w-4 text-[#15803d]" /> : <AlertTriangle className="h-4 w-4 text-[#ff7417]" />}
                   {item.label}
                 </span>
-                <span className={`font-black ${item.value === 0 ? "text-[#16a34a]" : "text-[#ef233c]"}`}>{item.value}</span>
+                <span className={`font-black ${item.value === 0 ? "text-[#15803d]" : "text-[#ef233c]"}`}>{item.value}</span>
               </Link>
             ))}
           </div>

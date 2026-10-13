@@ -110,7 +110,7 @@ export default async function AdminPostsPage({
                   <TableCell>{post.category?.name || "—"}</TableCell>
                   <TableCell>
                     {seoReady(post) ? (
-                      <span className="inline-flex items-center gap-1 rounded bg-[#ecfdf3] px-2 py-1 text-xs font-black text-[#16a34a]">
+                      <span className="inline-flex items-center gap-1 rounded bg-[#ecfdf3] px-2 py-1 text-xs font-black text-[#15803d]">
                         <CheckCircle2 className="h-3.5 w-3.5" /> Đủ SEO
                       </span>
                     ) : (

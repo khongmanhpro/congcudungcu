@@ -71,6 +71,7 @@ export function AddToCartForm({ product }: Props) {
           <button
             type="button"
             onClick={() => setQty(Math.max(1, qty - 1))}
+            aria-label="Giảm số lượng"
             className="flex h-10 w-12 items-center justify-center text-[#667085] hover:bg-brand-50 hover:text-brand"
             disabled={disabled}
           >
@@ -78,6 +79,7 @@ export function AddToCartForm({ product }: Props) {
           </button>
           <input
             type="number"
+            aria-label="Số lượng"
             value={qty}
             onChange={(e) => setQty(Math.max(1, Math.min(Number(e.target.value), Math.max(1, product.stock))))}
             className="h-10 w-20 border-x border-[#dce5f1] text-center text-sm font-bold outline-none"
@@ -86,6 +88,7 @@ export function AddToCartForm({ product }: Props) {
           <button
             type="button"
             onClick={() => setQty(Math.min(qty + 1, Math.max(1, product.stock)))}
+            aria-label="Tăng số lượng"
             className="flex h-10 w-12 items-center justify-center text-brand hover:bg-brand-50"
             disabled={disabled}
           >

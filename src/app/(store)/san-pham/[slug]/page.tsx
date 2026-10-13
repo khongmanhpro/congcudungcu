@@ -258,7 +258,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
                 <div className="mt-4 flex flex-wrap items-center gap-4 text-sm">
                   {product.stock > 0 ? (
-                    <span className="flex items-center gap-1.5 font-semibold text-[#16a34a]">
+                    <span className="flex items-center gap-1.5 font-semibold text-[#15803d]">
                       <CheckCircle2 className="h-4 w-4" /> Còn hàng
                     </span>
                   ) : (

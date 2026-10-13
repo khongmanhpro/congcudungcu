@@ -9,7 +9,8 @@ export function CartButton() {
   return (
     <Link
       href="/gio-hang"
-      aria-label="Giỏ hàng"
+      aria-label={`Giỏ hàng ${count}`}
+      title="Giỏ hàng"
       className="relative grid h-10 w-10 place-items-center rounded-full bg-brand-50 text-brand shadow-[0_0_0_4px_rgba(0,56,105,.06)] hover:bg-brand hover:text-white"
     >
       <ShoppingCart className="h-5 w-5" />

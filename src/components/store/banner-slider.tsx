@@ -27,7 +27,7 @@ export function BannerSlider({ slides }: { slides: BannerSlide[] }) {
   return (
     <section className="relative aspect-[16/9] overflow-hidden rounded-md bg-brand-dark sm:aspect-[1176/366]">
       {slides.map((slide, i) => (
-        <div key={i} className={`absolute inset-0 transition-opacity duration-700 ${i === index ? "opacity-100" : "pointer-events-none opacity-0"}`} aria-hidden={i !== index}>
+        <div key={i} className={`absolute inset-0 transition-opacity duration-700 ${i === index ? "opacity-100" : "pointer-events-none opacity-0"}`} aria-hidden={i !== index} inert={i !== index}>
           {slide.image ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={slide.image} alt={slide.title} className="h-full w-full object-cover" />
@@ -54,15 +54,11 @@ export function BannerSlider({ slides }: { slides: BannerSlide[] }) {
       ))}
 
       {slides.length > 1 && (
-        <div className="absolute bottom-3 left-5 flex gap-1.5 sm:left-6">
+        <div className="absolute bottom-1.5 left-3.5 flex sm:left-4.5">
           {slides.map((_, i) => (
-            <button
-              key={i}
-              type="button"
-              onClick={() => setIndex(i)}
-              aria-label={`Banner ${i + 1}`}
-              className={`h-2.5 w-2.5 rounded-full border border-white transition ${i === index ? "bg-white" : "bg-white/20"}`}
-            />
+            <button key={i} type="button" onClick={() => setIndex(i)} aria-label={`Banner ${i + 1}`} className="grid h-6 w-6 place-items-center">
+              <span className={`h-2.5 w-2.5 rounded-full border border-white transition ${i === index ? "bg-white" : "bg-white/20"}`} />
+            </button>
           ))}
         </div>
       )}

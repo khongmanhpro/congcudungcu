@@ -31,7 +31,7 @@ export function ProductDetailTabs({
 
   return (
     <section className="mt-5 overflow-hidden rounded-md border border-[#dce5f1] bg-white sm:mt-8">
-      <div className="flex overflow-x-auto border-b border-[#dce5f1] text-xs font-black uppercase text-[#172033] sm:text-sm">
+      <div role="tablist" className="flex overflow-x-auto border-b border-[#dce5f1] text-xs font-black uppercase text-[#172033] sm:text-sm">
         {tabs.map((tab) => (
           <button
             key={tab.id}

@@ -148,7 +148,8 @@ export const TAXONOMY: TaxonomyNode[] = [
 /** Luật phân loại: [slug danh mục lá, regex trên tên đã bỏ dấu]. Thứ tự = độ ưu tiên. */
 export const RULES: [string, RegExp][] = [
   // --- máy & thiết bị (chứa từ "may" nên xét trước dụng cụ cầm tay) ---
-  ["may-han", /\b(may han|mo han|kim han|que han|bo han|day han|mat na han|welder|\bmig\b|\bmma\b|plasma|\btig\b)/],
+  // ranh giới từ cuối: "kìm hàng rào" / "xe đẩy hàng" bỏ dấu thành "kim hang" / "day hang"
+  ["may-han", /\b(may han|mo han|kim han|que han|bo han|day han|mat na han|welder|mig|mma|plasma|tig)\b/],
   ["dung-cu-khi-nen", /(khi nen|may nen|sung phun|sung xit|day hoi|ong hoi|dau noi nhanh|\bair\b|sung bom hoi|binh phun)/],
   ["dung-cu-dung-xang", /(may phat|dung xang|chay xang|may cat co|may cua xich|may bom)/],
   ["mui-khoan-phu-kien", /(mui khoan|bo mui|mui khoet|mui taro|dau kep mui|mui duc|mui sds|dau khoan|tay khoan)/],
@@ -159,25 +160,28 @@ export const RULES: [string, RegExp][] = [
   ["may-cha-nham-danh-bong", /(may cha|may danh bong|may nham)/],
   ["may-mai", /(may mai|\bgws\b)/],
   ["may-cat-may-cua", /(may cat|may cua|may bao|may phay|may ct)/],
-  ["dung-cu-dien", /(quat hut|may lam sach|robot|may thoi|may hut|sung ban keo|sung nhiet|sung khong khi nong|may rua|may xit|may tron|may duc|may dong dinh|radio|may cha)/],
+  ["dung-cu-dien", /(may ren ong|may tien ren|quat hut|may lam sach|robot|may thoi|may hut|sung ban keo|sung nhiet|sung khong khi nong|may rua|may xit|may tron|may duc|may dong dinh|radio|may cha)/],
 
   // --- đo lường ---
   ["can-luc", /(co le luc|can luc|can xiet luc|can siet luc|torque|tuyp luc)/],
   ["thuoc-cuon", /(thuoc (day|cuon))/],
   ["thuoc-cap-panme", /(thuoc (cap|kep)|panme|dong ho so|du xich|caliper)/],
   ["thuoc-thuy-may-laser", /(thuoc thuy|ni ?vo|livo|laser|can bang)/],
-  ["thuoc-ke-can-la", /(thuoc ke|thuoc la|thuoc goc|\be ?ke\b|can la|feeler|thuoc do goc|thuoc thang)/],
-  ["may-do-dong-ho-do", /(may do|dong ho (van nang|do|ap)|ampe|kim ke|but thu|nhiet ke|do am|kyoritsu|fluke|\bdo (dien|nhiet|khoang cach|do day))/],
+  // "căn lá" — có ranh giới từ: "cần lắc" bỏ dấu là "can lac" (chứa "can la")
+  ["thuoc-ke-can-la", /(thuoc ke|thuoc la\b|thuoc goc|\be ?ke\b|\bcan la\b|feeler|thuoc do goc|thuoc thang|thuoc gap|thuoc xep)/],
+  ["may-do-dong-ho-do", /(may do|dong ho (van nang|do|ap)|ampe|but thu|nhiet ke|do am|kyoritsu|fluke|\bdo (dien|nhiet|khoang cach|do day))/],
 
   // --- garage, nâng hạ, nhà xưởng ---
   ["thiet-bi-nang-ha", /(pa ?lang|\bkich\b|cau nang|ban nang|cau moc|me ke|chan ke|xe nang|con doi|tay kich)/],
   ["dung-cu-sua-chua-o-to", /(xec mang|dong co|piston|ve xe|bugi|phanh|bmw|toyota|mercedes|hyundai|bom dau|loc dau|thay dau|hung dau|xe chui gam|hop so|bom mo|autel|chan doan|dong ho ap suat lop|thao lop|o to|xe may|lam dong|bo kiem tra)/],
   ["tu-hop-do-nghe", /(tu dung cu|tu do nghe|tu dung do|xe day|hop dung|thung dung|tui dung|balo|ke dung|khay dung|tu (\d+) ngan|\bke \d+ tang|ke (sat|nhua|de|treo)|thung nhua|tu nhua|moc treo|bang treo|ke luoi|vach luoi|tui (cong cu|do nghe|dung cu))/],
-  ["e-to-kep", /(\be ?to\b|eto|kep sat|kep go|kep nhanh|kep chu|kep f\b|kep c\b|kep goc|kep ong)/],
-  ["thang-nhom", /\bthang\b/],
+  ["e-to-kep", /(\bcao (chu )?(c|g|f)\b|\bcao kep|\be ?to\b|eto|kep sat|kep go|kep nhanh|kep chu|kep f\b|kep c\b|kep goc|kep ong)/],
+  // "thang" chỉ khi là thang (bỏ dấu: "kìm mũi thẳng" cũng thành "thang")
+  ["thang-nhom", /(^thang\b|\bthang (nhom|ghe|rut|chu a|xep|gap|day|inox|sat|tre|ong|di dong)\b)/],
 
   // --- điện & chiếu sáng, bảo hộ ---
-  ["den-chieu-sang", /(\bden\b)/],
+  // "đèn" — tránh "đen" (màu) khi bỏ dấu
+  ["den-chieu-sang", /(^(bo )?den\b|\bden (pin|led|lam viec|sac|long|doi dau|chieu sang|ban|tich dien|soi|khan cap|\d+ bong)|\bbong den\b)/],
   ["thiet-bi-dien-khac", /(\bpin\b.*(sac|li-?ion|\dah|\d+v)|bo sac|cuc sac|sac pin|^pin )/],
   ["bao-ho-lao-dong", /(gang tay|mat na|ao phan quang|giay bao ho|mu bao ho|non bao ho|kinh (bao ho|trong|ram)|nut tai|chup tai|day an toan|khau trang|ung bao ho|tap de)/],
 
@@ -188,7 +192,7 @@ export const RULES: [string, RegExp][] = [
   ["dau-tuyp", /(^dieu\b(?! chinh)|\bdieu (chu|l)\b|dau tuyp|\btuyp\b|dau khau|socket)/],
 
   // --- kìm ---
-  ["kim-mo-phe", /(kim (mo |bam )?phe|\bphe (trong|ngoai)\b)/],
+  ["kim-mo-phe", /(kim (mo |bam )?phe|kim mo vong|\bphe (trong|ngoai)\b)/],
   ["kim-bam-cos-tuot-day", /(tuoc day|bam cos|kim (bam|bop|ep)( dau)? ?cos|kim tuot|tuot day|kim cat tuot|kim bam (day|dau)|kim bam cot)/],
   ["kim-chet-kim-kep", /(kim (chet|bam chet|kep|giu)|kim kep|kim bam chet)/],
   ["kim-mo-qua-kim-nuoc", /(mo qua|kim (nuoc|ong|ong nuoc|so|mo lech))/],
@@ -216,9 +220,12 @@ export const RULES: [string, RegExp][] = [
 
   // --- dụng cụ cầm tay khác ---
   ["bua", /\bbua\b/],
-  ["dao-keo", /(\bdao\b|\bkeo\b|luoi dao)/],
-  ["duc-giua-dot-lo", /(\bduc\b|giua|\bdua\b|dot lo|dung cu dot|dau dot)/],
-  ["cao-thao", /(\bcao\b|\bvam\b)/],
+  // "dao/kéo" — tránh "đảo chiều", "kéo căng" khi bỏ dấu
+  ["dao-keo", /(^(bo )?dao\b(?! chieu)|\bdao (roc|gap|cat|cao|tien|da nang|ong|nhiet|xep|bay)\b|^(bo )?keo\b|\bkeo (cat|tia)\b|luoi dao)/],
+  // "đục" — tránh "đúc" (thép đúc, gang đúc) khi bỏ dấu
+  ["duc-giua-dot-lo", /(^(bo )?duc\b|\bduc (go|sat|be tong|nhon|det|lo|dau|tay|bang)\b|giua|^(bo )?dua\b|dot lo|dung cu dot|dau dot)/],
+  // "cảo" — tránh "cao su", "cao cấp", "áp suất cao" khi bỏ dấu
+  ["cao-thao", /(^(bo )?cao\b(?! (su|cap|ap))|\bcao (2|3|hai|ba) chau|\bcao (vong bi|banh rang|thao|rut|trong|ngoai|puli)\b|\bvam\b)/],
   ["taro-ban-ren", /(taro|ban ren|\bren\b)/],
   ["bo-dung-cu", /(bo dung cu|bo do nghe|bo sua chua|tool set|bo \d+ (chi tiet|mon|cai|pcs))/],
 ];

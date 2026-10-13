@@ -105,6 +105,7 @@ export function LiveSearch({ categories = [] }: { categories?: SearchCategory[] 
             }}
             onFocus={() => setOpen(true)}
             placeholder="Tìm sản phẩm"
+            aria-label="Tìm sản phẩm"
             className="h-full min-w-0 flex-1 rounded-l-md border-0 bg-white px-3 text-sm focus:outline-none sm:px-5"
           />
 
@@ -147,7 +148,7 @@ export function LiveSearch({ categories = [] }: { categories?: SearchCategory[] 
             )}
           </div>
 
-          <button type="submit" className="flex h-full w-12 shrink-0 items-center justify-center rounded-r-md bg-brand text-white hover:bg-brand-dark md:w-14">
+          <button type="submit" aria-label="Tìm kiếm" className="flex h-full w-12 shrink-0 items-center justify-center rounded-r-md bg-brand text-white hover:bg-brand-dark md:w-14">
             <Search className="h-5 w-5" />
           </button>
         </div>

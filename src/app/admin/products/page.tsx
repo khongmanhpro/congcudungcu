@@ -144,7 +144,7 @@ export default async function AdminProductsPage({
                 </td>
                 <td className="p-3">
                   {seoReady(p) ? (
-                    <span className="inline-flex items-center gap-1 rounded bg-[#ecfdf3] px-2 py-1 text-xs font-black text-[#16a34a]">
+                    <span className="inline-flex items-center gap-1 rounded bg-[#ecfdf3] px-2 py-1 text-xs font-black text-[#15803d]">
                       <CheckCircle2 className="h-3.5 w-3.5" /> Đủ
                     </span>
                   ) : (
@@ -198,7 +198,7 @@ function AdminSignal({
 }) {
   const toneClass = {
     blue: "bg-[#f0f6ff] text-[#0757c9]",
-    green: "bg-[#ecfdf3] text-[#16a34a]",
+    green: "bg-[#ecfdf3] text-[#15803d]",
     orange: "bg-[#fff7ed] text-[#f97316]",
   }[tone];
 

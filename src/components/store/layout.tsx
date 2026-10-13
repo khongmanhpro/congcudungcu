@@ -72,7 +72,7 @@ export async function StoreHeader() {
       {/* Thanh trên cùng */}
       <div className="border-b border-[#e2e8f0] text-xs text-[#334155]">
         <div className="mx-auto flex h-8 max-w-7xl items-center gap-2 px-3 sm:px-4">
-          <span>Hotline: <a href={telHref(hotline)} className="font-bold text-[#16a34a] hover:underline">{hotline}</a></span>
+          <span>Hotline: <a href={telHref(hotline)} className="font-bold text-[#15803d] hover:underline">{hotline}</a></span>
           <span className="hidden text-[#cbd5e1] sm:inline">|</span>
           <span className="hidden sm:inline">Email: <a href={`mailto:${email}`} className="font-bold text-[#0f172a] hover:underline">{email}</a></span>
           <span className="ml-auto hidden items-center gap-4 font-medium md:flex">

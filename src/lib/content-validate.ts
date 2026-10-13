@@ -17,7 +17,16 @@ export type ProductDraft = {
 export type DraftIssue = { level: "error" | "warning"; code: string; message: string };
 
 const ALLOWED_TAGS = new Set(["h2", "h3", "p", "ul", "ol", "li", "strong", "em", "table", "thead", "tbody", "tr", "th", "td", "br"]);
-const BANNED = ["tốt nhất", "số 1", "số một", "hàng đầu thế giới", "giá rẻ nhất", "vĩnh viễn", "100% không", "siêu bền", "đỉnh cao"];
+const BANNED = ["tốt nhất", "hàng đầu thế giới", "giá rẻ nhất", "vĩnh viễn", "100% không", "siêu bền", "đỉnh cao"];
+// "số 1" chỉ cấm khi là lời quảng cáo — "đầu vít số 1", "1/2 inch" là hợp lệ
+const BANNED_PATTERNS: RegExp[] = [
+  /(là|hàng|đứng|thương hiệu|nhà phân phối|đơn vị)\s+số\s+(1|một)\b(?!\s*\/)/i,
+  /số\s+(1|một)\s+(thị trường|việt nam|thế giới|trong ngành)/i,
+];
+const bannedIn = (text: string) => [
+  ...BANNED.filter((phrase) => text.includes(phrase)),
+  ...BANNED_PATTERNS.flatMap((re) => text.match(re)?.[0] ?? []),
+];
 const REQUIRED_H2 = ["tổng quan", "đặc điểm nổi bật", "mua"];
 
 const stripHtml = (html: string) => html.replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/\s+/g, " ").trim();
@@ -75,7 +84,7 @@ export function validateDraft(draft: ProductDraft, sourceText: string, oldDescri
 
   const allText = [draft.seoTitle, draft.seoDesc, draft.shortDesc, stripHtml(draft.descriptionHtml), ...draft.faq.flatMap((f) => [f.question, f.answer]), ...draft.specs.map((s) => s.value)].join(" ");
   const lower = allText.toLowerCase();
-  const banned = BANNED.filter((phrase) => lower.includes(phrase));
+  const banned = bannedIn(lower);
   if (banned.length) add("error", "banned_phrase", `Có cụm từ cấm: ${banned.join(", ")}.`);
 
   // Số liệu không có trong dữ kiện = nghi bịa (bỏ qua số nhỏ ≤ 10 dùng để đếm, và các số chính sách cố định)
@@ -121,7 +130,7 @@ export function validateHubContent(
   }
 
   const lower = [stripHtml(html), item.seoTitle, item.seoDesc, ...(item.texts ?? [])].filter(Boolean).join(" ").toLowerCase();
-  const banned = BANNED.filter((phrase) => lower.includes(phrase));
+  const banned = bannedIn(lower);
   if (banned.length) add("error", "banned_phrase", `Có cụm từ cấm: ${banned.join(", ")}.`);
   return issues;
 }
