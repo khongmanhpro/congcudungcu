@@ -5,7 +5,8 @@ import { prisma } from "@/lib/prisma";
 import { JsonLd, absoluteUrl, breadcrumbJsonLd } from "@/lib/seo";
 import { brandPath } from "@/lib/urls";
 
-export const revalidate = 3600;
+// Render khi có request: cần DB (Docker build không có DB để render sẵn)
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Thương hiệu dụng cụ chính hãng phân phối",

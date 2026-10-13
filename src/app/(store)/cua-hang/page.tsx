@@ -4,7 +4,8 @@ import { ChevronRight, Clock, Mail, MapPin, Phone } from "lucide-react";
 import { getSettings } from "@/components/store/layout";
 import { JsonLd, SITE_NAME, absoluteUrl, breadcrumbJsonLd, getSiteUrl } from "@/lib/seo";
 
-export const revalidate = 3600;
+// Render khi có request: cần DB (Docker build không có DB để render sẵn)
+export const dynamic = "force-dynamic";
 
 const DEFAULT_ADDRESS = "T2/D3B/31, Đường Bình Chuẩn 62, Khu phố Bình Thuận 2, Phường Thuận Giao, Thành phố Hồ Chí Minh";
 
