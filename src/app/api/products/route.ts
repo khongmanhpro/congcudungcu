@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { pingIndexNow } from "@/lib/indexnow";
+import { productPath } from "@/lib/urls";
 import { getSession } from "@/lib/session";
 import { slugify, uniqueSlug } from "@/lib/slug";
 
@@ -116,5 +118,6 @@ export async function POST(request: NextRequest) {
     include: { images: true },
   });
 
+  if (product.status === "PUBLISHED") pingIndexNow([productPath(product.slug)]);
   return NextResponse.json(product, { status: 201 });
 }

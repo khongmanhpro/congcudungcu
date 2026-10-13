@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { recordRedirect } from "@/lib/redirects";
+import { pingIndexNow } from "@/lib/indexnow";
+import { postPath } from "@/lib/urls";
 import { getSession } from "@/lib/session";
 import { slugify, uniqueSlug } from "@/lib/slug";
 
@@ -78,6 +81,8 @@ export async function PUT(request: NextRequest, { params }: Params) {
     },
   });
 
+  if (slug !== existing.slug) await recordRedirect(postPath(existing.slug), postPath(slug));
+  if (post.status === "PUBLISHED") pingIndexNow([postPath(post.slug)]);
   return NextResponse.json(post);
 }
 

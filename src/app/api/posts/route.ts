@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { pingIndexNow } from "@/lib/indexnow";
+import { postPath } from "@/lib/urls";
 import { getSession } from "@/lib/session";
 import { slugify, uniqueSlug } from "@/lib/slug";
 
@@ -84,5 +86,6 @@ export async function POST(request: NextRequest) {
     },
   });
 
+  if (post.status === "PUBLISHED") pingIndexNow([postPath(post.slug)]);
   return NextResponse.json(post, { status: 201 });
 }

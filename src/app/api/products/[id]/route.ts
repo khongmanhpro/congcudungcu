@@ -3,6 +3,9 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { slugify, uniqueSlug } from "@/lib/slug";
+import { recordRedirect } from "@/lib/redirects";
+import { pingIndexNow } from "@/lib/indexnow";
+import { productPath } from "@/lib/urls";
 
 const imageSchema = z.object({
   url: z.string(),
@@ -11,6 +14,7 @@ const imageSchema = z.object({
 });
 
 const specSchema = z.object({ label: z.string(), value: z.string() });
+const faqSchema = z.object({ question: z.string().min(1), answer: z.string().min(1) });
 
 const updateSchema = z.object({
   name: z.string().min(1).optional(),
@@ -30,6 +34,14 @@ const updateSchema = z.object({
   brandId: z.string().optional().nullable(),
   images: z.array(imageSchema).optional(),
   publishedAt: z.string().optional().nullable(),
+  // SEO / nội dung
+  model: z.string().optional().nullable(),
+  gtin: z.string().optional().nullable(),
+  origin: z.string().optional().nullable(),
+  seoTitle: z.string().max(70).optional().nullable(),
+  seoDesc: z.string().max(170).optional().nullable(),
+  faq: z.array(faqSchema).max(10).optional().nullable(),
+  contentStatus: z.enum(["ORIGINAL", "AI_DRAFT", "REVIEWED"]).optional(),
 });
 
 type Params = { params: Promise<{ id: string }> };
@@ -109,9 +121,22 @@ export async function PUT(request: NextRequest, { params }: Params) {
           create: d.images.map((img, i) => ({ url: img.url, alt: img.alt || null, position: img.position ?? i })),
         },
       }),
+      ...(d.model !== undefined && { model: d.model }),
+      ...(d.gtin !== undefined && { gtin: d.gtin }),
+      ...(d.origin !== undefined && { origin: d.origin }),
+      ...(d.seoTitle !== undefined && { seoTitle: d.seoTitle }),
+      ...(d.seoDesc !== undefined && { seoDesc: d.seoDesc }),
+      ...(d.faq !== undefined && { faq: d.faq ?? undefined }),
+      ...(d.contentStatus !== undefined && { contentStatus: d.contentStatus }),
+      // nội dung đổi → cập nhật lastmod trong sitemap
+      ...([d.description, d.shortDesc, d.specs, d.seoTitle, d.seoDesc, d.faq, d.name].some((v) => v !== undefined) && { contentUpdatedAt: new Date() }),
     },
     include: { images: { orderBy: { position: "asc" } } },
   });
+
+  // đổi slug → 301 từ URL cũ (không để link cũ thành 404)
+  if (slug !== existing.slug) await recordRedirect(productPath(existing.slug), productPath(slug));
+  if (product.status === "PUBLISHED") pingIndexNow([productPath(product.slug)]);
 
   return NextResponse.json(product);
 }
