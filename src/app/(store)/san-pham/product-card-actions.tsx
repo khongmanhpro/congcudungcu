@@ -30,10 +30,10 @@ export function ProductWishlistButton({ product }: { product: ActionProduct }) {
         salePrice: product.salePrice,
         image: product.image,
       })}
-      className="absolute right-2 top-2 z-20 grid h-8 w-8 place-items-center rounded-full bg-white text-[#98a2b3] shadow-sm transition hover:text-[#ef4444]"
+      className="grid h-8 w-8 place-items-center rounded-full text-[#94a3b8] transition hover:bg-[#fff1f1] hover:text-[#ef4444]"
       aria-label={isFavorite ? "Bỏ yêu thích" : "Thêm vào yêu thích"}
     >
-      <Heart className={`h-5 w-5 ${isFavorite ? "fill-[#ef4444] text-[#ef4444]" : ""}`} />
+      <Heart className={`h-4 w-4 ${isFavorite ? "fill-[#ef4444] text-[#ef4444]" : ""}`} />
     </button>
   );
 }
@@ -55,7 +55,7 @@ export function ProductCartButton({ product }: { product: ActionProduct }) {
         type="button"
         onClick={handleAdd}
         disabled={unavailable}
-        className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-brand text-white transition hover:bg-brand-dark disabled:cursor-not-allowed disabled:bg-[#eef0f4] disabled:text-[#98a2b3]"
+        className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand-50 text-brand shadow-[0_0_0_4px_rgba(0,56,105,.06)] transition hover:bg-brand hover:text-white disabled:cursor-not-allowed disabled:bg-[#f1f5f9] disabled:text-[#94a3b8] disabled:shadow-none"
         aria-label={product.price <= 0 ? "Liên hệ báo giá" : added ? "Đã thêm vào giỏ" : "Thêm vào giỏ hàng"}
         title={product.price <= 0 ? "Liên hệ báo giá" : added ? "Đã thêm" : "Thêm vào giỏ"}
       >

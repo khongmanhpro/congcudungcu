@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getCategorySubtreeIds } from "@/lib/categories";
 import { ProductCard } from "@/components/store/product-card";
+import { getProductStats } from "@/lib/product-stats";
 
 export const revalidate = 60;
 
@@ -40,62 +41,55 @@ export default async function CategoryPage({
     }),
     prisma.product.count({ where }),
   ]);
+  const stats = await getProductStats(products.map((p) => p.id));
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const ancestors = [category.parent?.parent, category.parent].filter((c): c is { name: string; slug: string } => !!c);
 
   return (
-    <div className="bg-[#f3f5f9] pb-10">
-      <div className="border-b border-[#dce5f1] bg-white">
-        <div className="mx-auto max-w-7xl px-3 py-5 sm:px-4">
-          <nav className="mb-2 flex flex-wrap items-center gap-1.5 text-[13px] text-[#667085]">
-            <Link href="/" className="hover:text-brand">Trang chủ</Link>
-            {ancestors.map((a) => (
-              <span key={a.slug} className="flex items-center gap-1.5">
-                <ChevronRight className="h-3.5 w-3.5" />
-                <Link href={`/danh-muc/${a.slug}`} className="hover:text-brand">{a.name}</Link>
-              </span>
-            ))}
-            <ChevronRight className="h-3.5 w-3.5" />
-            <span className="font-semibold text-brand">{category.name}</span>
-          </nav>
-          <h1 className="text-2xl font-bold uppercase text-brand">{category.name}</h1>
-          <p className="mt-1 text-sm text-[#667085]">{total} sản phẩm</p>
-          {category.description && <p className="mt-3 max-w-3xl text-sm leading-6 text-[#344054]">{category.description}</p>}
-        </div>
-      </div>
+    <div className="bg-[#f5f6f8] pb-8">
+      <div className="mx-auto max-w-7xl space-y-4 px-3 pt-3 sm:px-4">
+        <nav className="flex flex-wrap items-center gap-1.5 text-[13px] text-[#475569]">
+          <Link href="/" className="hover:text-brand">Trang chủ</Link>
+          {ancestors.map((a) => (
+            <span key={a.slug} className="flex items-center gap-1.5">
+              <ChevronRight className="h-3.5 w-3.5" />
+              <Link href={`/danh-muc/${a.slug}`} className="hover:text-brand">{a.name}</Link>
+            </span>
+          ))}
+          <ChevronRight className="h-3.5 w-3.5" />
+          <span className="font-bold text-[#0f172a]">{category.name}</span>
+        </nav>
 
-      <div className="mx-auto max-w-7xl space-y-6 px-3 pt-5 sm:px-4">
-        {category.children.length > 0 && (
-          <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8">
-            {category.children.map((child) => (
-              <Link
-                key={child.id}
-                href={`/danh-muc/${child.slug}`}
-                className="group flex flex-col items-center rounded-lg border border-[#e4e9f2] bg-white p-2.5 text-center transition hover:border-gold hover:shadow-md"
-              >
-                <div className="grid aspect-square w-full place-items-center overflow-hidden rounded-md bg-brand-50/60">
-                  {child.imageUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={child.imageUrl} alt={child.name} loading="lazy" className="h-full w-full object-contain p-1.5" />
-                  ) : (
-                    <span className="text-xl font-bold text-brand/30">{child.name.charAt(0)}</span>
-                  )}
-                </div>
-                <span className="mt-2 line-clamp-2 text-xs font-bold leading-4 text-brand group-hover:text-gold-dark">{child.name}</span>
-              </Link>
-            ))}
+        <section className="rounded-lg border border-gold bg-white p-3">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h1 className="text-xl font-black text-[#0f172a]">{category.name}</h1>
+            <span className="text-xs text-[#475569]">{total} sản phẩm</span>
           </div>
-        )}
+          {category.description && <p className="mb-3 max-w-3xl text-sm leading-6 text-[#334155]">{category.description}</p>}
+          {category.children.length > 0 && (
+            <div className="mb-3 flex flex-wrap gap-2">
+              {category.children.map((child) => (
+                <Link
+                  key={child.id}
+                  href={`/danh-muc/${child.slug}`}
+                  className="rounded-full border border-gold px-3 py-1.5 text-[13px] font-bold text-[#0f172a] transition hover:bg-gold hover:text-brand-dark"
+                >
+                  {child.name}
+                </Link>
+              ))}
+            </div>
+          )}
 
-        {products.length === 0 ? (
-          <p className="rounded-lg border border-[#dce5f1] bg-white py-16 text-center text-sm text-[#667085]">Chưa có sản phẩm trong danh mục này.</p>
-        ) : (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-            {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
-        )}
+          {products.length === 0 ? (
+            <p className="py-12 text-center text-sm text-[#475569]">Chưa có sản phẩm trong danh mục này.</p>
+          ) : (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+              {products.map((product) => (
+                <ProductCard key={product.id} product={product} stats={stats.get(product.id)} />
+              ))}
+            </div>
+          )}
+        </section>
 
         {totalPages > 1 && (
           <div className="flex items-center justify-center gap-2 text-sm font-bold">

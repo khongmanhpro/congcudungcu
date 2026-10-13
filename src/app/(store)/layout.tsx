@@ -13,6 +13,7 @@ export default async function StoreLayout({ children }: { children: React.ReactN
         hotline={settings.contact_hotline || "0978.39.03.39"}
         zalo={settings.contact_zalo}
         messenger={settings.social_messenger}
+        facebook={settings.social_facebook}
       />
     </>
   );

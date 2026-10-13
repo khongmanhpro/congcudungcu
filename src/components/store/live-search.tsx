@@ -85,9 +85,9 @@ export function LiveSearch({ categories = [] }: { categories?: SearchCategory[] 
   const hasResults = data && (data.products.length > 0 || data.categories.length > 0);
 
   return (
-    <div ref={containerRef} className="relative order-3 w-full max-w-2xl flex-none md:order-none md:flex-1">
+    <div ref={containerRef} className="relative order-3 w-full flex-none md:order-none md:flex-1">
       <form onSubmit={submit}>
-        <div className="relative flex h-11 overflow-visible rounded-md border-2 border-brand bg-white md:h-12">
+        <div className="relative flex h-10 overflow-visible rounded-lg border border-gold bg-white md:h-11">
           <input
             type="search"
             value={q}
@@ -104,7 +104,7 @@ export function LiveSearch({ categories = [] }: { categories?: SearchCategory[] 
               }
             }}
             onFocus={() => setOpen(true)}
-            placeholder="Bạn cần tìm sản phẩm gì..."
+            placeholder="Tìm sản phẩm"
             className="h-full min-w-0 flex-1 rounded-l-md border-0 bg-white px-3 text-sm focus:outline-none sm:px-5"
           />
 

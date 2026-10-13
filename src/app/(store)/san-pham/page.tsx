@@ -12,6 +12,7 @@ import {
 import { prisma } from "@/lib/prisma";
 import { buildStandardProductCategories } from "@/components/store/catalog-categories";
 import { ProductCard } from "@/components/store/product-card";
+import { getProductStats } from "@/lib/product-stats";
 import { getCategorySubtreeIds } from "@/lib/categories";
 import { ProductFilters } from "./product-filters";
 import { ProductSortSelect } from "./product-sort-select";
@@ -72,6 +73,7 @@ export default async function ProductsPage({
     }).catch(() => []),
   ]);
 
+  const stats = await getProductStats(products.map((p) => p.id));
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const firstItem = total === 0 ? 0 : (page - 1) * pageSize + 1;
   const lastItem = Math.min(page * pageSize, total);
@@ -169,7 +171,7 @@ export default async function ProductsPage({
           ) : (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
               {products.map((product) => (
-                <ProductCard key={product.id} product={product} />
+                <ProductCard key={product.id} product={product} stats={stats.get(product.id)} />
               ))}
             </div>
           )}

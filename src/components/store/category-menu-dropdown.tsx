@@ -2,53 +2,68 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ChevronDown, ChevronRight, LayoutGrid, Menu, X } from "lucide-react";
+import { ChevronDown, ChevronRight, Menu, X } from "lucide-react";
 import type { CatalogCategory } from "./catalog-categories";
 
-/** Danh sách danh mục cha + bảng con/cháu hiện khi rê chuột (mega menu). */
-function MegaPanel({ categories, onNavigate, className = "" }: { categories: CatalogCategory[]; onNavigate?: () => void; className?: string }) {
+type NavExtra = { name: string; href: string };
+
+/** Thanh menu ngang: mỗi danh mục cha một ô, rê chuột hiện bảng danh mục con/cháu. */
+export function CategoryNavBar({ categories, extras = [] }: { categories: CatalogCategory[]; extras?: NavExtra[] }) {
   const [active, setActive] = useState<number | null>(null);
-  const current = active !== null ? categories[active] : null;
+  const closeTimer = useRef<number | null>(null);
+  const items = categories.slice(0, 8);
+  const current = active !== null ? items[active] : null;
+
+  const open = (index: number) => {
+    if (closeTimer.current) window.clearTimeout(closeTimer.current);
+    setActive(index);
+  };
+  const scheduleClose = () => {
+    closeTimer.current = window.setTimeout(() => setActive(null), 120);
+  };
 
   return (
-    <div className={`relative ${className}`} onMouseLeave={() => setActive(null)}>
-      <ul className="divide-y divide-[#edf1f7] bg-white">
-        {categories.map((category, index) => (
-          <li key={category.id} onMouseEnter={() => setActive(index)}>
+    <div className="relative" onMouseLeave={scheduleClose}>
+      <ul className="flex overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {items.map((category, index) => (
+          <li key={category.id} className="shrink-0 border-r border-white/15 last:border-r-0" onMouseEnter={() => open(index)}>
             <Link
               href={`/danh-muc/${category.slug}`}
-              onClick={onNavigate}
-              className={`flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-semibold transition ${active === index ? "bg-brand-50 text-brand" : "text-[#253044] hover:bg-brand-50 hover:text-brand"}`}
+              onClick={() => setActive(null)}
+              className={`block whitespace-nowrap px-4 py-3 text-sm font-bold transition ${active === index ? "bg-white/10 text-gold" : "text-white hover:text-gold"}`}
             >
-              {category.imageUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={category.imageUrl} alt="" className="h-6 w-6 shrink-0 rounded object-contain" />
-              ) : (
-                <LayoutGrid className="h-4 w-4 shrink-0 text-[#98a2b3]" />
-              )}
-              <span className="line-clamp-1 flex-1">{category.name}</span>
-              {!!category.children?.length && <ChevronRight className="h-4 w-4 shrink-0 text-[#98a2b3]" />}
+              {category.name}
+            </Link>
+          </li>
+        ))}
+        {extras.map((extra) => (
+          <li key={extra.href} className="shrink-0 border-l border-white/15" onMouseEnter={() => setActive(null)}>
+            <Link href={extra.href} className="block whitespace-nowrap px-4 py-3 text-sm font-bold text-white hover:text-gold">
+              {extra.name}
             </Link>
           </li>
         ))}
       </ul>
 
       {current && !!current.children?.length && (
-        <div className="absolute left-full top-0 z-50 min-h-full w-[min(760px,calc(100vw-340px))] border border-[#dce5f1] bg-white p-5 shadow-2xl">
-          <Link href={`/danh-muc/${current.slug}`} onClick={onNavigate} className="mb-4 inline-flex items-center gap-1 text-sm font-bold uppercase text-brand hover:text-gold-dark">
+        <div
+          className="absolute inset-x-0 top-full z-50 hidden border border-t-0 border-gold/70 bg-white p-5 shadow-2xl lg:block"
+          onMouseEnter={() => active !== null && open(active)}
+        >
+          <Link href={`/danh-muc/${current.slug}`} onClick={() => setActive(null)} className="mb-3 inline-flex items-center gap-1 text-sm font-bold uppercase text-brand hover:text-gold-dark">
             {current.name} <ChevronRight className="h-4 w-4" />
           </Link>
-          <div className="grid grid-cols-3 gap-x-6 gap-y-4">
+          <div className="grid grid-cols-4 gap-x-6 gap-y-4">
             {current.children.map((child) => (
               <div key={child.id} className="min-w-0">
-                <Link href={`/danh-muc/${child.slug}`} onClick={onNavigate} className="block text-[13px] font-bold text-[#1d2939] hover:text-brand">
+                <Link href={`/danh-muc/${child.slug}`} onClick={() => setActive(null)} className="block text-sm font-bold text-[#0f172a] hover:text-brand">
                   {child.name}
                 </Link>
                 {!!child.children?.length && (
                   <ul className="mt-1.5 space-y-1">
-                    {child.children.slice(0, 8).map((leaf) => (
+                    {child.children.slice(0, 10).map((leaf) => (
                       <li key={leaf.id}>
-                        <Link href={`/danh-muc/${leaf.slug}`} onClick={onNavigate} className="text-xs text-[#667085] hover:text-brand">
+                        <Link href={`/danh-muc/${leaf.slug}`} onClick={() => setActive(null)} className="text-[13px] text-[#475569] hover:text-brand">
                           {leaf.name}
                         </Link>
                       </li>
@@ -61,60 +76,6 @@ function MegaPanel({ categories, onNavigate, className = "" }: { categories: Cat
         </div>
       )}
     </div>
-  );
-}
-
-/** Nút "Danh mục sản phẩm" trên thanh menu (desktop). */
-export function CategoryMenuDropdown({ categories }: { categories: CatalogCategory[] }) {
-  const [open, setOpen] = useState(false);
-  const rootRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const onPointerDown = (event: PointerEvent) => {
-      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
-    };
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
-    };
-    document.addEventListener("pointerdown", onPointerDown);
-    document.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.removeEventListener("pointerdown", onPointerDown);
-      document.removeEventListener("keydown", onKeyDown);
-    };
-  }, [open]);
-
-  return (
-    <div ref={rootRef} className="relative hidden w-[280px] shrink-0 lg:block">
-      <button
-        type="button"
-        onClick={() => setOpen((value) => !value)}
-        aria-expanded={open}
-        className="flex h-12 w-full items-center gap-2.5 bg-brand-dark px-5 text-left text-[13px] font-bold uppercase tracking-wide text-white transition hover:bg-black/30"
-      >
-        <Menu className="h-5 w-5" />
-        <span className="flex-1">Danh mục sản phẩm</span>
-        <ChevronDown className={`h-4 w-4 transition ${open ? "rotate-180" : ""}`} />
-      </button>
-      {open && (
-        <div className="absolute left-0 top-full z-50 w-full border border-t-0 border-[#dce5f1] shadow-2xl">
-          <MegaPanel categories={categories} onNavigate={() => setOpen(false)} />
-        </div>
-      )}
-    </div>
-  );
-}
-
-/** Cột danh mục luôn mở bên trái banner trang chủ (desktop). */
-export function CategorySidebar({ categories }: { categories: CatalogCategory[] }) {
-  return (
-    <aside className="hidden lg:block">
-      <div className="flex h-11 items-center gap-2.5 rounded-t-lg bg-brand-dark px-4 text-[13px] font-bold uppercase tracking-wide text-white">
-        <Menu className="h-5 w-5" /> Danh mục sản phẩm
-      </div>
-      <MegaPanel categories={categories.slice(0, 12)} className="rounded-b-lg border border-t-0 border-[#dce5f1]" />
-    </aside>
   );
 }
 
@@ -145,15 +106,15 @@ export function MobileCategoryDrawer({ categories }: { categories: CatalogCatego
             <div className="flex-1 overflow-y-auto">
               {categories.map((category) => (
                 <details key={category.id} className="group border-b border-[#edf1f7]">
-                  <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-sm font-semibold text-[#1d2939]">
+                  <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-sm font-bold text-[#0f172a]">
                     <Link href={`/danh-muc/${category.slug}`} onClick={() => setOpen(false)}>{category.name}</Link>
-                    {!!category.children?.length && <ChevronDown className="h-4 w-4 text-[#98a2b3] transition group-open:rotate-180" />}
+                    {!!category.children?.length && <ChevronDown className="h-4 w-4 text-[#94a3b8] transition group-open:rotate-180" />}
                   </summary>
                   {!!category.children?.length && (
                     <ul className="bg-brand-50/60 pb-2">
                       {category.children.map((child) => (
                         <li key={child.id}>
-                          <Link href={`/danh-muc/${child.slug}`} onClick={() => setOpen(false)} className="block px-7 py-2 text-[13px] text-[#344054]">
+                          <Link href={`/danh-muc/${child.slug}`} onClick={() => setOpen(false)} className="block px-7 py-2 text-[13px] text-[#334155]">
                             {child.name}
                           </Link>
                         </li>
@@ -162,9 +123,9 @@ export function MobileCategoryDrawer({ categories }: { categories: CatalogCatego
                   )}
                 </details>
               ))}
-              <div className="space-y-1 p-4 text-sm font-semibold text-brand">
+              <div className="space-y-1 p-4 text-sm font-bold text-brand">
                 <Link href="/san-pham" onClick={() => setOpen(false)} className="block py-1.5">Tất cả sản phẩm</Link>
-                <Link href="/tin-tuc" onClick={() => setOpen(false)} className="block py-1.5">Tin tức</Link>
+                <Link href="/tin-tuc" onClick={() => setOpen(false)} className="block py-1.5">Thư viện Media</Link>
                 <Link href="/lien-he" onClick={() => setOpen(false)} className="block py-1.5">Liên hệ</Link>
               </div>
             </div>

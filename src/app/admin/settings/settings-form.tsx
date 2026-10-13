@@ -18,7 +18,6 @@ const FIELDS = [
   { key: "social_youtube", label: "YouTube URL", type: "input" },
   { key: "contact_zalo", label: "Zalo (link chat, vd https://zalo.me/0978390339)", type: "input" },
   { key: "social_messenger", label: "Messenger (link chat, vd https://m.me/tenpage)", type: "input" },
-  { key: "home_youtube_videos", label: "Video trang chủ (ID hoặc link YouTube, cách nhau dấu phẩy)", type: "input" },
   { key: "seo_title", label: "SEO Title", type: "input" },
   { key: "seo_description", label: "SEO Description", type: "textarea" },
   { key: "vnpay_tmncode", label: "VNPay TmnCode", type: "input" },
@@ -27,7 +26,18 @@ const FIELDS = [
   { key: "policy_returns", label: "Chính sách đổi trả", type: "textarea" },
   { key: "policy_shipping", label: "Chính sách vận chuyển", type: "textarea" },
   { key: "policy_privacy", label: "Chính sách bảo mật", type: "textarea" },
+  { key: "policy_sales", label: "Chính sách bán hàng", type: "textarea" },
+  { key: "policy_payment", label: "Phương thức thanh toán", type: "textarea" },
+  { key: "policy_dealer", label: "Trở thành đại lý", type: "textarea" },
+  { key: "company_name", label: "Tên công ty (chân trang)", type: "input", hint: "Ví dụ: CÔNG TY CỔ PHẦN WORKMAN" },
+  { key: "home_banners", label: "Banner trang chủ", type: "textarea", hint: "Mỗi dòng 1 banner: link ảnh | tiêu đề | mô tả | link khi bấm. Để trống ảnh sẽ dùng banner màu kèm ảnh sản phẩm nổi bật." },
+  { key: "home_youtube_videos", label: "Video / Hướng dẫn", type: "textarea", hint: "Mỗi dòng 1 video: link YouTube | tiêu đề" },
+  { key: "footer_contacts", label: "Nhân viên kinh doanh (chân trang)", type: "textarea", hint: "Mỗi dòng: Tên | Số điện thoại" },
+  { key: "footer_sites", label: "Website trong hệ thống (chân trang)", type: "textarea", hint: "Mỗi dòng: tên miền | link" },
 ];
+
+const GROUPED_PREFIXES = ["seo_", "vnpay_", "policy_", "home_", "footer_", "company_"];
+const isHomeField = (key: string) => ["home_", "footer_", "company_"].some((prefix) => key.startsWith(prefix));
 
 export function SettingsForm({ initial }: { initial: Record<string, string> }) {
   const [values, setValues] = useState<Record<string, string>>(initial);
@@ -57,7 +67,7 @@ export function SettingsForm({ initial }: { initial: Record<string, string> }) {
       <div className="rounded-lg border bg-white p-5 space-y-4">
         <h3 className="font-semibold">Thông tin chung</h3>
         <div className="grid gap-4 md:grid-cols-2">
-          {FIELDS.slice(0, 12).map((f) => (
+          {FIELDS.filter((f) => !GROUPED_PREFIXES.some((prefix) => f.key.startsWith(prefix))).map((f) => (
             <div key={f.key} className="space-y-2">
               <Label htmlFor={f.key}>{f.label}</Label>
               <Input
@@ -68,6 +78,31 @@ export function SettingsForm({ initial }: { initial: Record<string, string> }) {
             </div>
           ))}
         </div>
+      </div>
+
+      <div className="rounded-lg border bg-white p-5 space-y-4">
+        <h3 className="font-semibold">Trang chủ &amp; chân trang</h3>
+        {FIELDS.filter((f) => isHomeField(f.key)).map((f) => (
+          <div key={f.key} className="space-y-2">
+            <Label htmlFor={f.key}>{f.label}</Label>
+            {f.type === "textarea" ? (
+              <Textarea
+                id={f.key}
+                value={values[f.key] || ""}
+                onChange={(e) => setValues({ ...values, [f.key]: e.target.value })}
+                rows={4}
+                className="font-mono text-xs"
+              />
+            ) : (
+              <Input
+                id={f.key}
+                value={values[f.key] || ""}
+                onChange={(e) => setValues({ ...values, [f.key]: e.target.value })}
+              />
+            )}
+            {"hint" in f && <p className="text-xs text-muted-foreground">{f.hint}</p>}
+          </div>
+        ))}
       </div>
 
       <div className="rounded-lg border bg-white p-5 space-y-4">

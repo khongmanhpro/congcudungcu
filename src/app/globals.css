@@ -32,7 +32,7 @@
   --color-success: #16a34a;
   --color-warning: #eab308;
   --radius: 0.5rem;
-  --font-sans: var(--font-quicksand), "Helvetica Neue", sans-serif;
+  --font-sans: var(--font-roboto), "Helvetica Neue", Arial, sans-serif;
 }
 
 * {

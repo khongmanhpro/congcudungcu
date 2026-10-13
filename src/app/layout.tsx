@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { Quicksand } from "next/font/google";
+import { Roboto } from "next/font/google";
 import "./globals.css";
 
-const quicksand = Quicksand({
+const roboto = Roboto({
   subsets: ["latin", "vietnamese"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-quicksand",
+  weight: ["400", "500", "700", "900"],
+  variable: "--font-roboto",
   display: "swap",
 });
 
@@ -43,7 +43,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="vi" className={`h-full antialiased ${quicksand.variable}`}>
+    <html lang="vi" className={`h-full antialiased ${roboto.variable}`}>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );

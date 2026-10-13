@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ProductCard } from "@/components/store/product-card";
+import { getProductStats } from "@/lib/product-stats";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { formatVND } from "@/lib/format";
@@ -93,6 +94,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     include: { images: { take: 1, orderBy: { position: "asc" } }, brand: { select: { name: true } } },
   }).catch(() => []);
 
+  const stats = await getProductStats(related.map((p) => p.id));
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -282,7 +284,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           </div>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
             {related.map((p) => (
-              <ProductCard key={p.id} product={p} />
+              <ProductCard key={p.id} product={p} stats={stats.get(p.id)} />
             ))}
           </div>
         </section>

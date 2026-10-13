@@ -10,6 +10,9 @@ export function generateStaticParams() {
     { slug: "chinh-sach-doi-tra" },
     { slug: "van-chuyen" },
     { slug: "chinh-sach-bao-mat" },
+    { slug: "chinh-sach-ban-hang" },
+    { slug: "phuong-thuc-thanh-toan" },
+    { slug: "tro-thanh-dai-ly" },
   ];
 }
 
@@ -40,6 +43,21 @@ export default async function PolicyPage({ params }: { params: Promise<{ slug: s
       key: "policy_privacy",
       title: "Chính sách bảo mật",
       fallback: "Chúng tôi cam kết bảo mật thông tin cá nhân của khách hàng. Không chia sẻ, bán cho bên thứ ba. Dữ liệu chỉ dùng để xử lý đơn hàng và liên hệ khi cần.",
+    },
+    "chinh-sach-ban-hang": {
+      key: "policy_sales",
+      title: "Chính sách bán hàng",
+      fallback: "Sản phẩm chính hãng, có đầy đủ CO/CQ và hóa đơn VAT theo yêu cầu. Giá có thể thay đổi theo số lượng và thời điểm — vui lòng liên hệ để nhận báo giá tốt nhất.",
+    },
+    "phuong-thuc-thanh-toan": {
+      key: "policy_payment",
+      title: "Phương thức thanh toán",
+      fallback: "Thanh toán khi nhận hàng (COD), thanh toán online qua VNPay hoặc chuyển khoản ngân hàng. Khách hàng doanh nghiệp có thể thanh toán theo hợp đồng.",
+    },
+    "tro-thanh-dai-ly": {
+      key: "policy_dealer",
+      title: "Trở thành đại lý",
+      fallback: "Chúng tôi luôn chào đón đại lý, cửa hàng và nhà thầu trên toàn quốc với chính sách chiết khấu hấp dẫn. Vui lòng liên hệ hotline hoặc gửi yêu cầu để được tư vấn.",
     },
   };
 
