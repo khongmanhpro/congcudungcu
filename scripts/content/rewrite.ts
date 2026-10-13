@@ -1,0 +1,238 @@
+/**
+ * Viết lại nội dung sản phẩm bằng Claude (Message Batches API, giảm 50% chi phí) → lưu BẢN NHÁP (Product.aiDraft)
+ * chờ người duyệt ở /admin/content-review. Không ghi đè nội dung đang hiển thị.
+ *
+ *   pnpm exec tsx scripts/content/rewrite.ts preview --limit 50           # xem dữ kiện sẽ gửi (không gọi API)
+ *   pnpm exec tsx scripts/content/rewrite.ts estimate --limit 50          # đếm token đầu vào (miễn phí), chưa chi tiền
+ *   pnpm exec tsx scripts/content/rewrite.ts submit --limit 50            # pilot 50 sp (ưu tiên sp có giá, xen kẽ hãng)
+ *   pnpm exec tsx scripts/content/rewrite.ts submit --brand knipex        # theo hãng
+ *   pnpm exec tsx scripts/content/rewrite.ts status <batchId>
+ *   pnpm exec tsx scripts/content/rewrite.ts collect <batchId>            # chờ xong → kiểm tra → lưu nháp + in chi phí thực
+ *
+ * Cần ANTHROPIC_API_KEY (hoặc profile `ant auth login`). Prompt: content/prompts/product-rewrite.md
+ */
+import "dotenv/config";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import Anthropic from "@anthropic-ai/sdk";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { Prisma, PrismaClient } from "../../src/generated/prisma/client";
+import { type ProductDraft, stripHtmlText, validateDraft } from "../../src/lib/content-validate";
+import { readSpecs } from "../../src/lib/specs";
+
+const MODEL = "claude-opus-5-5";
+// Giá Claude Opus 5.5 (USD / 1 triệu token) — Batch API tính 50%. Chỉ để ước tính; hóa đơn thật xem ở Console.
+const PRICE = { input: 4, output: 20, cacheWrite: 5, cacheRead: 0.2, batchDiscount: 0.5 };
+const STATE_DIR = "tmp/content-batches";
+
+const prisma = new PrismaClient({ adapter: new PrismaPg(process.env.DATABASE_URL!) });
+const SYSTEM_PROMPT = readFileSync("content/prompts/product-rewrite.md", "utf8");
+
+/** Schema JSON cho output_config.format (mọi object: additionalProperties false, liệt kê đủ required). */
+const DRAFT_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: ["seoTitle", "seoDesc", "shortDesc", "descriptionHtml", "specs", "faq", "imageAlt", "needsData"],
+  properties: {
+    seoTitle: { type: "string" },
+    seoDesc: { type: "string" },
+    shortDesc: { type: "string" },
+    descriptionHtml: { type: "string" },
+    specs: {
+      type: "array",
+      items: { type: "object", additionalProperties: false, required: ["label", "value"], properties: { label: { type: "string" }, value: { type: "string" } } },
+    },
+    faq: {
+      type: "array",
+      items: { type: "object", additionalProperties: false, required: ["question", "answer"], properties: { question: { type: "string" }, answer: { type: "string" } } },
+    },
+    imageAlt: { type: "string" },
+    needsData: { type: "array", items: { type: "string" } },
+  },
+} as const;
+
+function arg(name: string): string | undefined {
+  const i = process.argv.indexOf(`--${name}`);
+  return i > 0 ? process.argv[i + 1] : undefined;
+}
+
+type SourceProduct = Awaited<ReturnType<typeof loadProducts>>[number];
+
+async function loadProducts(where: Record<string, unknown>) {
+  return prisma.product.findMany({
+    where: { status: "PUBLISHED", contentStatus: "ORIGINAL", aiDraft: { equals: Prisma.AnyNull }, ...where },
+    select: {
+      id: true, name: true, sku: true, model: true, origin: true, price: true, shortDesc: true, description: true, specs: true,
+      brand: { select: { name: true, slug: true, country: true } },
+      category: { select: { name: true, parent: { select: { name: true } } } },
+    },
+  });
+}
+
+/** Chọn sản phẩm: ưu tiên có giá, xen kẽ thương hiệu để mẫu pilot đa dạng. */
+async function selectProducts(): Promise<SourceProduct[]> {
+  const brand = arg("brand");
+  const limit = Number(arg("limit") ?? "50");
+  const rows = await loadProducts(brand ? { brand: { slug: brand } } : {});
+  const byBrand = new Map<string, SourceProduct[]>();
+  for (const p of rows.sort((a, b) => Number(b.price > 0) - Number(a.price > 0))) {
+    const key = p.brand?.slug ?? "-";
+    byBrand.set(key, [...(byBrand.get(key) ?? []), p]);
+  }
+  const queues = [...byBrand.values()];
+  const picked: SourceProduct[] = [];
+  while (picked.length < limit && queues.some((q) => q.length)) {
+    for (const q of queues) if (q.length && picked.length < limit) picked.push(q.shift()!);
+  }
+  return picked;
+}
+
+function facts(p: SourceProduct) {
+  const specs = readSpecs(p.specs);
+  return {
+    name: p.name,
+    brand: p.brand?.name ?? null,
+    brandCountry: p.brand?.country ?? null,
+    model: p.model ?? p.sku ?? null,
+    origin: p.origin ?? null,
+    category: [p.category?.parent?.name, p.category?.name].filter(Boolean).join(" › ") || null,
+    priceStatus: p.price > 0 ? "listed" : "contact",
+    specs,
+    shortDesc: p.shortDesc ? stripHtmlText(p.shortDesc) : null,
+    oldDescription: stripHtmlText(p.description || "").slice(0, 8000),
+  };
+}
+
+function requestParams(p: SourceProduct) {
+  return {
+    model: MODEL,
+    max_tokens: 16000,
+    // system prompt giống nhau cho mọi sản phẩm → cache
+    system: [{ type: "text" as const, text: SYSTEM_PROMPT, cache_control: { type: "ephemeral" as const } }],
+    output_config: { effort: "medium" as const, format: { type: "json_schema" as const, schema: DRAFT_SCHEMA } },
+    messages: [{ role: "user" as const, content: `<product>\n${JSON.stringify(facts(p), null, 1)}\n</product>` }],
+  };
+}
+
+// tạo client khi cần (lệnh preview không cần API key)
+let anthropic: Anthropic | null = null;
+const getClient = () => (anthropic ??= new Anthropic());
+
+/** Xem dữ kiện gửi cho AI (không gọi API, không tốn tiền). */
+async function preview() {
+  const products = await selectProducts();
+  console.log(`${products.length} sản phẩm được chọn. Hãng: ${[...new Set(products.map((p) => p.brand?.name ?? "-"))].join(", ")}`);
+  console.log(`Có giá: ${products.filter((p) => p.price > 0).length} · có mô tả cũ: ${products.filter((p) => p.description).length}`);
+  if (products[0]) console.log("\nVí dụ dữ kiện sản phẩm đầu tiên:\n" + JSON.stringify(facts(products[0]), null, 2).slice(0, 1500));
+}
+
+async function estimate() {
+  const products = await selectProducts();
+  let input = 0;
+  for (const p of products) {
+    const r = await getClient().messages.countTokens({ model: MODEL, system: requestParams(p).system, messages: requestParams(p).messages });
+    input += r.input_tokens;
+  }
+  console.log(`${products.length} sản phẩm · ${input.toLocaleString()} token đầu vào (TB ${Math.round(input / Math.max(1, products.length))}/sp).`);
+  console.log("Token đầu ra (gồm suy nghĩ) chỉ biết sau khi chạy — hãy chạy pilot `submit --limit 50` rồi `collect` để có chi phí thật.");
+}
+
+async function submit() {
+  const products = await selectProducts();
+  if (products.length === 0) return console.log("Không còn sản phẩm nào cần viết lại.");
+  const batch = await getClient().messages.batches.create({
+    requests: products.map((p) => ({ custom_id: p.id, params: requestParams(p) })),
+  });
+  mkdirSync(STATE_DIR, { recursive: true });
+  writeFileSync(`${STATE_DIR}/${batch.id}.json`, JSON.stringify({ batchId: batch.id, createdAt: new Date().toISOString(), productIds: products.map((p) => p.id) }, null, 2));
+  console.log(`Đã tạo batch ${batch.id} với ${products.length} sản phẩm. Theo dõi: rewrite.ts status ${batch.id}`);
+}
+
+async function status(batchId: string) {
+  const b = await getClient().messages.batches.retrieve(batchId);
+  console.log(`${b.processing_status} · đang xử lý ${b.request_counts.processing} · xong ${b.request_counts.succeeded} · lỗi ${b.request_counts.errored} · hết hạn ${b.request_counts.expired}`);
+}
+
+async function collect(batchId: string) {
+  for (;;) {
+    const b = await getClient().messages.batches.retrieve(batchId);
+    if (b.processing_status === "ended") break;
+    console.log(`Đang chờ… ${b.request_counts.processing} yêu cầu còn đang xử lý`);
+    await new Promise((resolve) => setTimeout(resolve, 60_000));
+  }
+
+  const usage = { input: 0, output: 0, cacheWrite: 0, cacheRead: 0 };
+  let saved = 0;
+  let withErrors = 0;
+  const failed: string[] = [];
+
+  for await (const item of await getClient().messages.batches.results(batchId)) {
+    if (item.result.type !== "succeeded") {
+      failed.push(`${item.custom_id}: ${item.result.type}`);
+      continue;
+    }
+    const message = item.result.message;
+    usage.input += message.usage.input_tokens;
+    usage.output += message.usage.output_tokens;
+    usage.cacheWrite += message.usage.cache_creation_input_tokens ?? 0;
+    usage.cacheRead += message.usage.cache_read_input_tokens ?? 0;
+
+    if (message.stop_reason === "refusal" || message.stop_reason === "max_tokens") {
+      failed.push(`${item.custom_id}: stop_reason=${message.stop_reason}`);
+      continue;
+    }
+    const text = message.content.flatMap((block) => (block.type === "text" ? [block.text] : [])).join("");
+    let draft: ProductDraft;
+    try {
+      draft = JSON.parse(text) as ProductDraft;
+    } catch {
+      failed.push(`${item.custom_id}: JSON không hợp lệ`);
+      continue;
+    }
+
+    const product = await prisma.product.findUnique({
+      where: { id: item.custom_id },
+      select: { id: true, name: true, sku: true, model: true, origin: true, price: true, shortDesc: true, description: true, specs: true, brand: { select: { name: true, slug: true, country: true } }, category: { select: { name: true, parent: { select: { name: true } } } } },
+    });
+    if (!product) continue;
+    const f = facts(product);
+    const issues = validateDraft(draft, JSON.stringify(f), f.oldDescription);
+    if (issues.some((i) => i.level === "error")) withErrors++;
+
+    await prisma.product.update({
+      where: { id: product.id },
+      data: {
+        contentStatus: "AI_DRAFT",
+        aiDraft: { draft, issues, model: MODEL, batchId, createdAt: new Date().toISOString() },
+      },
+    });
+    saved++;
+  }
+
+  const cost =
+    ((usage.input * PRICE.input + usage.output * PRICE.output + usage.cacheWrite * PRICE.cacheWrite + usage.cacheRead * PRICE.cacheRead) / 1e6) * PRICE.batchDiscount;
+  console.log(`\nĐã lưu ${saved} bản nháp (${withErrors} có lỗi cần xem kỹ). Thất bại: ${failed.length}.`);
+  if (failed.length) console.log(failed.slice(0, 20).map((f) => `  - ${f}`).join("\n"));
+  console.log(`Token: vào ${usage.input.toLocaleString()} · ra ${usage.output.toLocaleString()} · ghi cache ${usage.cacheWrite.toLocaleString()} · đọc cache ${usage.cacheRead.toLocaleString()}`);
+  console.log(`Chi phí ước tính lô này: ~$${cost.toFixed(2)} (≈ $${(cost / Math.max(1, saved)).toFixed(4)}/sp → toàn catalog 3.180 sp ≈ $${((cost / Math.max(1, saved)) * 3180).toFixed(0)})`);
+  console.log("Duyệt tại /admin/content-review");
+}
+
+async function main() {
+  const [command, id] = process.argv.slice(2);
+  if (command === "preview") return preview();
+  if (command === "estimate") return estimate();
+  if (command === "submit") return submit();
+  if (command === "status" && id) return status(id);
+  if (command === "collect" && id) return collect(id);
+  console.log("Lệnh: preview | estimate | submit | status <batchId> | collect <batchId>  (xem đầu file)");
+}
+
+main()
+  .catch((error) => {
+    if (error instanceof Anthropic.AuthenticationError) console.error("Chưa có ANTHROPIC_API_KEY hợp lệ (hoặc chạy `ant auth login`).");
+    else if (error instanceof Anthropic.RateLimitError) console.error("Bị giới hạn tốc độ — thử lại sau.");
+    else if (error instanceof Anthropic.APIError) console.error(`Lỗi API ${error.status}: ${error.message}`);
+    else console.error(error);
+    process.exitCode = 1;
+  })
+  .finally(() => prisma.$disconnect());

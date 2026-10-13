@@ -7,6 +7,7 @@ import { faqJsonLd, parseFaq } from "@/components/store/faq-section";
 /** Phí giao hàng cố định — khớp shippingFee trong src/app/api/checkout/route.ts */
 const SHIPPING_FEE = 30000;
 import { redirectIfMoved } from "@/lib/redirects";
+import { readSpecs } from "@/lib/specs";
 import { JsonLd, absoluteUrl, breadcrumbJsonLd, getSiteUrl, toMetaDescription } from "@/lib/seo";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -138,7 +139,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   const stats = await getProductStats([product.id, ...related.map((p) => p.id), ...sameBrand.map((p) => p.id)]);
   const own = stats.get(product.id);
   const productUrl = absoluteUrl(`/san-pham/${product.slug}`);
-  const specsForLd = ((product.specs as { items?: { label: string; value: string }[] } | null)?.items || []).filter((i) => i.label && i.value).slice(0, 20);
+  const specsForLd = readSpecs(product.specs).slice(0, 20);
   const offerPrice = product.salePrice && product.salePrice > 0 ? product.salePrice : product.price;
   const jsonLd = {
     "@context": "https://schema.org",
@@ -207,7 +208,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     ? Math.round((1 - product.salePrice / product.price) * 100)
     : null;
   const savings = product.salePrice && product.salePrice > 0 && product.price > product.salePrice ? product.price - product.salePrice : 0;
-  const specsItems = (product.specs as { items?: { label: string; value: string }[] } | null)?.items || [];
+  const specsItems = readSpecs(product.specs);
   const featureChips = specsItems.slice(0, 4);
   const descriptionHtml = normalizeProductHtml(product.description || "");
 

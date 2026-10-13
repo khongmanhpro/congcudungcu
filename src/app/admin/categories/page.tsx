@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 export default async function AdminCategoriesPage() {
   const categories = await prisma.category.findMany({
     include: { parent: true, _count: { select: { products: true, posts: true, children: true } } },
-    orderBy: [{ type: "asc" }, { name: "asc" }],
+    orderBy: [{ type: "asc" }, { position: "asc" }, { name: "asc" }],
   });
 
   return (
@@ -34,6 +34,13 @@ export default async function AdminCategoriesPage() {
           productCount: c._count.products,
           postCount: c._count.posts,
           childrenCount: c._count.children,
+          seoTitle: c.seoTitle,
+          seoDesc: c.seoDesc,
+          intro: c.intro,
+          content: c.content,
+          faq: Array.isArray(c.faq) ? (c.faq as { question: string; answer: string }[]) : [],
+          position: c.position,
+          featured: c.featured,
         }))} />
       )}
     </div>

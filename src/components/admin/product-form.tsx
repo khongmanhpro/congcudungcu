@@ -8,12 +8,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { TiptapEditor } from "@/components/admin/tiptap-editor";
 import { slugify } from "@/lib/slug";
+import { readSpecs, type SpecItem } from "@/lib/specs";
 import { Plus, Trash2, X } from "lucide-react";
 
 interface Category { id: string; name: string }
 interface Brand { id: string; name: string }
 interface ImageItem { url: string; alt?: string | null; position?: number }
-interface SpecItem { label: string; value: string }
+interface FaqItem { question: string; answer: string }
 
 interface ProductData {
   id: string;
@@ -34,6 +35,17 @@ interface ProductData {
   brandId: string | null;
   images: { id: string; url: string; alt: string | null; position: number }[];
   publishedAt: string | null;
+  model?: string | null;
+  gtin?: string | null;
+  origin?: string | null;
+  seoTitle?: string | null;
+  seoDesc?: string | null;
+  faq?: unknown;
+}
+
+/** Ô nhập có đếm ký tự (đỏ khi vượt khuyến nghị). */
+function CountHint({ value, max }: { value: string; max: number }) {
+  return <span className={`text-xs ${value.length > max ? "text-red-600" : "text-muted-foreground"}`}>{value.length}/{max} ký tự</span>;
 }
 
 export function ProductForm({
@@ -56,12 +68,13 @@ export function ProductForm({
   const [stock, setStock] = useState(String(product?.stock ?? "0"));
   const [shortDesc, setShortDesc] = useState(product?.shortDesc || "");
   const [description, setDescription] = useState(product?.description || "");
-  const [specs, setSpecs] = useState<SpecItem[]>(
-    product?.specs ? (product.specs as { items?: SpecItem[] } | SpecItem[]).constructor === Array
-      ? (product.specs as SpecItem[])
-      : ((product.specs as { items?: SpecItem[] }).items ?? [])
-      : [],
-  );
+  const [specs, setSpecs] = useState<SpecItem[]>(readSpecs(product?.specs));
+  const [model, setModel] = useState(product?.model || "");
+  const [gtin, setGtin] = useState(product?.gtin || "");
+  const [origin, setOrigin] = useState(product?.origin || "");
+  const [seoTitle, setSeoTitle] = useState(product?.seoTitle || "");
+  const [seoDesc, setSeoDesc] = useState(product?.seoDesc || "");
+  const [faq, setFaq] = useState<FaqItem[]>(Array.isArray(product?.faq) ? (product!.faq as FaqItem[]) : []);
   const [status, setStatus] = useState(product?.status || "DRAFT");
   const [featured, setFeatured] = useState(product?.featured || false);
   const [weight, setWeight] = useState(String(product?.weight ?? ""));
@@ -116,7 +129,14 @@ export function ProductForm({
       stock: Number(stock) || 0,
       shortDesc: shortDesc || null,
       description,
-      specs: specs.length ? { items: specs.filter((s) => s.label && s.value) } : null,
+      // API nhận mảng; storefront đọc được cả mảng lẫn {items} (src/lib/specs.ts)
+      specs: specs.filter((s) => s.label && s.value).length ? specs.filter((s) => s.label && s.value) : null,
+      model: model || null,
+      gtin: gtin || null,
+      origin: origin || null,
+      seoTitle: seoTitle || null,
+      seoDesc: seoDesc || null,
+      faq: faq.filter((f) => f.question.trim() && f.answer.trim()),
       status,
       featured,
       weight: weight ? Number(weight) : null,
@@ -244,6 +264,44 @@ export function ProductForm({
                 ))}
               </div>
             )}
+          </div>
+
+          <div className="rounded-lg border bg-white p-5 space-y-4">
+            <h3 className="font-semibold">SEO &amp; dữ liệu cho Google/AI</h3>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between"><Label htmlFor="seoTitle">Tiêu đề SEO</Label><CountHint value={seoTitle} max={60} /></div>
+              <Input id="seoTitle" value={seoTitle} onChange={(e) => setSeoTitle(e.target.value)} placeholder={`Mặc định: ${name || "tên sản phẩm"}`} />
+              <p className="text-xs text-muted-foreground">Loại sản phẩm + đặc điểm chính + thương hiệu + mã model. Để trống = dùng tên sản phẩm.</p>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between"><Label htmlFor="seoDesc">Mô tả SEO</Label><CountHint value={seoDesc} max={155} /></div>
+              <Textarea id="seoDesc" value={seoDesc} onChange={(e) => setSeoDesc(e.target.value)} rows={2} placeholder="130–155 ký tự, nêu lợi ích chính + thương hiệu/mã + chính hãng, VAT" />
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="space-y-2"><Label htmlFor="model">Mã model (MPN)</Label><Input id="model" value={model} onChange={(e) => setModel(e.target.value)} /></div>
+              <div className="space-y-2"><Label htmlFor="gtin">Mã vạch (GTIN/EAN)</Label><Input id="gtin" value={gtin} onChange={(e) => setGtin(e.target.value)} /></div>
+              <div className="space-y-2"><Label htmlFor="origin">Xuất xứ</Label><Input id="origin" value={origin} onChange={(e) => setOrigin(e.target.value)} placeholder="VD: Đức" /></div>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label>Câu hỏi thường gặp (FAQ)</Label>
+                <Button type="button" variant="outline" size="sm" onClick={() => setFaq([...faq, { question: "", answer: "" }])}>
+                  <Plus className="h-4 w-4" /> Thêm câu hỏi
+                </Button>
+              </div>
+              {faq.length === 0 && <p className="text-xs text-muted-foreground">3–5 câu hỏi người mua hay hỏi; hiển thị ở tab Hỏi đáp và gửi cho Google dạng FAQPage.</p>}
+              {faq.map((item, i) => (
+                <div key={i} className="space-y-1.5 rounded-md border p-2">
+                  <div className="flex gap-2">
+                    <Input value={item.question} onChange={(e) => setFaq(faq.map((f, idx) => (idx === i ? { ...f, question: e.target.value } : f)))} placeholder="Câu hỏi" />
+                    <Button type="button" variant="ghost" size="icon" onClick={() => setFaq(faq.filter((_, idx) => idx !== i))}>
+                      <Trash2 className="h-4 w-4 text-red-600" />
+                    </Button>
+                  </div>
+                  <Textarea value={item.answer} onChange={(e) => setFaq(faq.map((f, idx) => (idx === i ? { ...f, answer: e.target.value } : f)))} rows={2} placeholder="Trả lời" />
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 

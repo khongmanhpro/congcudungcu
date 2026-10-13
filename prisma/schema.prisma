@@ -125,6 +125,7 @@ model Product {
   faq         Json?         // [{question, answer}]
   contentStatus    ContentStatus @default(ORIGINAL)
   contentUpdatedAt DateTime?
+  aiDraft          Json?         // bản nháp AI chờ duyệt (scripts/content/rewrite.ts) — chưa hiển thị ra site
   categoryId  String?
   category    Category?     @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   brandId     String?

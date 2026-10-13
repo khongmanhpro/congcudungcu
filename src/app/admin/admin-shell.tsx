@@ -16,6 +16,7 @@ import {
   Package,
   Plus,
   SearchCheck,
+  Sparkles,
   Settings,
   ShoppingCart,
   Star,
@@ -42,6 +43,7 @@ const groups = [
     label: "Nội dung & SEO",
     items: [
       { href: "/admin/posts", label: "Bài viết", icon: FileText },
+      { href: "/admin/content-review", label: "Duyệt nội dung AI", icon: Sparkles },
       { href: "/admin/categories", label: "Danh mục", icon: FolderTree },
       { href: "/admin/media", label: "Media", icon: ImageIcon },
       { href: "/admin/settings", label: "Cài đặt SEO", icon: SearchCheck },

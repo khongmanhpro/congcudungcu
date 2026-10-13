@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, Pencil, Trash2, X, Check } from "lucide-react";
@@ -21,6 +22,13 @@ interface CatItem {
   productCount: number;
   postCount: number;
   childrenCount: number;
+  seoTitle: string | null;
+  seoDesc: string | null;
+  intro: string | null;
+  content: string | null;
+  faq: { question: string; answer: string }[];
+  position: number;
+  featured: boolean;
 }
 
 export function CategoriesManager({ initialCategories }: { initialCategories: CatItem[] }) {
@@ -33,6 +41,12 @@ export function CategoriesManager({ initialCategories }: { initialCategories: Ca
   const [parentId, setParentId] = useState("");
   const [description, setDescription] = useState("");
   const [imageUrl, setImageUrl] = useState("");
+  const [seoTitle, setSeoTitle] = useState("");
+  const [seoDesc, setSeoDesc] = useState("");
+  const [intro, setIntro] = useState("");
+  const [content, setContent] = useState("");
+  const [faq, setFaq] = useState<{ question: string; answer: string }[]>([]);
+  const [position, setPosition] = useState("0");
   const [saving, setSaving] = useState(false);
 
   function resetForm() {
@@ -42,6 +56,12 @@ export function CategoriesManager({ initialCategories }: { initialCategories: Ca
     setParentId("");
     setDescription("");
     setImageUrl("");
+    setSeoTitle("");
+    setSeoDesc("");
+    setIntro("");
+    setContent("");
+    setFaq([]);
+    setPosition("0");
   }
 
   function startEdit(c: CatItem) {
@@ -51,6 +71,12 @@ export function CategoriesManager({ initialCategories }: { initialCategories: Ca
     setParentId(c.parentId || "");
     setDescription(c.description || "");
     setImageUrl(c.imageUrl || "");
+    setSeoTitle(c.seoTitle || "");
+    setSeoDesc(c.seoDesc || "");
+    setIntro(c.intro || "");
+    setContent(c.content || "");
+    setFaq(c.faq);
+    setPosition(String(c.position));
     setShowForm(true);
   }
 
@@ -63,6 +89,12 @@ export function CategoriesManager({ initialCategories }: { initialCategories: Ca
       parentId: parentId || null,
       description: description || null,
       imageUrl: imageUrl || null,
+      seoTitle: seoTitle || null,
+      seoDesc: seoDesc || null,
+      intro: intro || null,
+      content: content || null,
+      faq: faq.filter((f) => f.question.trim() && f.answer.trim()),
+      position: Number(position) || 0,
     };
     try {
       const url = editing ? `/api/categories/${editing.id}` : "/api/categories";
@@ -142,6 +174,50 @@ export function CategoriesManager({ initialCategories }: { initialCategories: Ca
             <Label htmlFor="description">Mô tả</Label>
             <Input id="description" value={description} onChange={(e) => setDescription(e.target.value)} />
           </div>
+          {type === "PRODUCT" && (
+            <div className="space-y-4 rounded-md border border-dashed p-4">
+              <p className="text-sm font-semibold">SEO &amp; nội dung trang danh mục</p>
+              <div className="grid gap-4 md:grid-cols-[1fr_1fr_120px]">
+                <div className="space-y-2">
+                  <Label htmlFor="seoTitle">Tiêu đề SEO <span className="text-xs text-muted-foreground">({seoTitle.length}/60)</span></Label>
+                  <Input id="seoTitle" value={seoTitle} onChange={(e) => setSeoTitle(e.target.value)} placeholder={`Mặc định: ${name || "Tên"} chính hãng, giá tốt`} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="seoDesc">Mô tả SEO <span className="text-xs text-muted-foreground">({seoDesc.length}/155)</span></Label>
+                  <Input id="seoDesc" value={seoDesc} onChange={(e) => setSeoDesc(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="position">Thứ tự</Label>
+                  <Input id="position" type="number" value={position} onChange={(e) => setPosition(e.target.value)} />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="intro">Giới thiệu ngắn (hiển thị trên lưới sản phẩm, 2–3 câu)</Label>
+                <Textarea id="intro" rows={2} value={intro} onChange={(e) => setIntro(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="content">Nội dung hướng dẫn (HTML, hiển thị dưới lưới: cách chọn, phân loại, bảng size…)</Label>
+                <Textarea id="content" rows={8} className="font-mono text-xs" value={content} onChange={(e) => setContent(e.target.value)} placeholder="<h2>Cách chọn …</h2><p>…</p>" />
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label>Câu hỏi thường gặp</Label>
+                  <Button type="button" variant="outline" size="sm" onClick={() => setFaq([...faq, { question: "", answer: "" }])}>
+                    <Plus className="h-4 w-4" /> Thêm câu hỏi
+                  </Button>
+                </div>
+                {faq.map((item, i) => (
+                  <div key={i} className="space-y-1.5 rounded-md border p-2">
+                    <div className="flex gap-2">
+                      <Input value={item.question} onChange={(e) => setFaq(faq.map((f, idx) => (idx === i ? { ...f, question: e.target.value } : f)))} placeholder="Câu hỏi" />
+                      <Button type="button" variant="ghost" size="icon" onClick={() => setFaq(faq.filter((_, idx) => idx !== i))}><Trash2 className="h-4 w-4 text-red-600" /></Button>
+                    </div>
+                    <Textarea rows={2} value={item.answer} onChange={(e) => setFaq(faq.map((f, idx) => (idx === i ? { ...f, answer: e.target.value } : f)))} placeholder="Trả lời" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           <Button type="submit" disabled={saving}>
             {saving ? "Đang lưu..." : editing ? "Cập nhật" : "Tạo"}
           </Button>

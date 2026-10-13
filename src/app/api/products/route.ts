@@ -34,6 +34,12 @@ const createSchema = z.object({
   categoryId: z.string().optional().nullable(),
   brandId: z.string().optional().nullable(),
   images: z.array(imageSchema).optional(),
+  model: z.string().optional().nullable(),
+  gtin: z.string().optional().nullable(),
+  origin: z.string().optional().nullable(),
+  seoTitle: z.string().max(70).optional().nullable(),
+  seoDesc: z.string().max(170).optional().nullable(),
+  faq: z.array(z.object({ question: z.string().min(1), answer: z.string().min(1) })).max(10).optional().nullable(),
   publishedAt: z.string().optional().nullable(),
 });
 
@@ -110,6 +116,13 @@ export async function POST(request: NextRequest) {
       dimensions: d.dimensions ?? null,
       categoryId: d.categoryId || null,
       brandId: d.brandId || null,
+      model: d.model || null,
+      gtin: d.gtin || null,
+      origin: d.origin || null,
+      seoTitle: d.seoTitle || null,
+      seoDesc: d.seoDesc || null,
+      faq: d.faq?.length ? d.faq : undefined,
+      contentUpdatedAt: new Date(),
       publishedAt: d.publishedAt ? new Date(d.publishedAt) : d.status === "PUBLISHED" ? new Date() : null,
       images: d.images?.length
         ? { create: d.images.map((img, i) => ({ url: img.url, alt: img.alt || null, position: img.position ?? i })) }
