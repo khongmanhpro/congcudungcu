@@ -2,6 +2,8 @@
  * Viết lại nội dung sản phẩm bằng Claude (Message Batches API, giảm 50% chi phí) → lưu BẢN NHÁP (Product.aiDraft)
  * chờ người duyệt ở /admin/content-review. Không ghi đè nội dung đang hiển thị.
  *
+ *   pnpm exec tsx scripts/content/rewrite.ts facts --limit 10             # (gói Max) xuất dữ kiện cho Claude Code viết
+ *   pnpm exec tsx scripts/content/rewrite.ts import tmp/content-drafts/drafts-x.json  # (gói Max) nạp bản nháp
  *   pnpm exec tsx scripts/content/rewrite.ts preview --limit 50           # xem dữ kiện sẽ gửi (không gọi API)
  *   pnpm exec tsx scripts/content/rewrite.ts estimate --limit 50          # đếm token đầu vào (miễn phí), chưa chi tiền
  *   pnpm exec tsx scripts/content/rewrite.ts submit --limit 50            # pilot 50 sp (ưu tiên sp có giá, xen kẽ hãng)
@@ -152,6 +154,51 @@ async function status(batchId: string) {
   console.log(`${b.processing_status} · đang xử lý ${b.request_counts.processing} · xong ${b.request_counts.succeeded} · lỗi ${b.request_counts.errored} · hết hạn ${b.request_counts.expired}`);
 }
 
+/** Kiểm tra + lưu bản nháp vào Product.aiDraft (trạng thái AI_DRAFT, chờ duyệt). */
+async function saveDraft(productId: string, draft: ProductDraft, source: Record<string, string>) {
+  const product = await prisma.product.findUnique({
+    where: { id: productId },
+    select: { id: true, name: true, sku: true, model: true, origin: true, price: true, shortDesc: true, description: true, specs: true, brand: { select: { name: true, slug: true, country: true } }, category: { select: { name: true, parent: { select: { name: true } } } } },
+  });
+  if (!product) return null;
+  const f = facts(product);
+  const issues = validateDraft(draft, JSON.stringify(f), f.oldDescription);
+  await prisma.product.update({
+    where: { id: product.id },
+    data: { contentStatus: "AI_DRAFT", aiDraft: { draft, issues, ...source, createdAt: new Date().toISOString() } },
+  });
+  return { name: product.name, issues, errors: issues.filter((i) => i.level === "error").length };
+}
+
+/**
+ * Viết bằng gói Claude Max (Claude Code), không qua API:
+ *   facts --limit 10 → xuất dữ kiện ra tmp/content-drafts/facts-*.json để Claude Code đọc và viết
+ *   import <file>     → nạp file [{ id, draft }] Claude Code viết, kiểm tra và lưu nháp
+ */
+async function exportFacts() {
+  const products = await selectProducts();
+  mkdirSync("tmp/content-drafts", { recursive: true });
+  const file = `tmp/content-drafts/facts-${Date.now()}.json`;
+  writeFileSync(file, JSON.stringify(products.map((p) => ({ id: p.id, facts: facts(p) })), null, 1));
+  console.log(`Đã xuất dữ kiện ${products.length} sản phẩm → ${file}`);
+}
+
+async function importDrafts(file: string) {
+  const rows = JSON.parse(readFileSync(file, "utf8")) as { id: string; draft: ProductDraft }[];
+  let saved = 0;
+  for (const row of rows) {
+    const result = await saveDraft(row.id, row.draft, { model: "claude-code (gói Max)", file });
+    if (!result) {
+      console.log(`  ? ${row.id}: không tìm thấy sản phẩm`);
+      continue;
+    }
+    saved++;
+    const flag = result.errors ? "✗" : result.issues.length ? "!" : "✓";
+    console.log(`  ${flag} ${result.name.slice(0, 60)}${result.issues.length ? `\n      ${result.issues.map((i) => `[${i.level}] ${i.message}`).join("\n      ")}` : ""}`);
+  }
+  console.log(`\nĐã lưu ${saved}/${rows.length} bản nháp. Duyệt tại /admin/content-review`);
+}
+
 async function collect(batchId: string) {
   for (;;) {
     const b = await getClient().messages.batches.retrieve(batchId);
@@ -189,22 +236,9 @@ async function collect(batchId: string) {
       continue;
     }
 
-    const product = await prisma.product.findUnique({
-      where: { id: item.custom_id },
-      select: { id: true, name: true, sku: true, model: true, origin: true, price: true, shortDesc: true, description: true, specs: true, brand: { select: { name: true, slug: true, country: true } }, category: { select: { name: true, parent: { select: { name: true } } } } },
-    });
-    if (!product) continue;
-    const f = facts(product);
-    const issues = validateDraft(draft, JSON.stringify(f), f.oldDescription);
-    if (issues.some((i) => i.level === "error")) withErrors++;
-
-    await prisma.product.update({
-      where: { id: product.id },
-      data: {
-        contentStatus: "AI_DRAFT",
-        aiDraft: { draft, issues, model: MODEL, batchId, createdAt: new Date().toISOString() },
-      },
-    });
+    const result = await saveDraft(item.custom_id, draft, { model: MODEL, batchId });
+    if (!result) continue;
+    if (result.errors) withErrors++;
     saved++;
   }
 
@@ -220,11 +254,13 @@ async function collect(batchId: string) {
 async function main() {
   const [command, id] = process.argv.slice(2);
   if (command === "preview") return preview();
+  if (command === "facts") return exportFacts();
+  if (command === "import" && id) return importDrafts(id);
   if (command === "estimate") return estimate();
   if (command === "submit") return submit();
   if (command === "status" && id) return status(id);
   if (command === "collect" && id) return collect(id);
-  console.log("Lệnh: preview | estimate | submit | status <batchId> | collect <batchId>  (xem đầu file)");
+  console.log("Lệnh: preview | facts | import <file> | estimate | submit | status <batchId> | collect <batchId>  (xem đầu file)");
 }
 
 main()

@@ -63,9 +63,9 @@ export function extractModel(name: string): string | null {
   const patterns = [
     /\b(\d{2} \d{2} \d{3})\b/, // Knipex 20 02 140
     /\b(0\d{3} \d{4})\b/, // Matador 0584 0410
-    /\b((?:GSB|GSR|GBH|GWS|GKS|GST|GDR|GDX|GLM|GLL|GML)\s?\d{1,3}(?:[- ]\d{1,3})?(?:\s?[A-Z]{1,3})?)\b/, // Bosch
+    /\b((?:GSB|GSR|GBH|GWS|GKS|GST|GDR|GDX|GDS|GLM|GLL|GML|GHO|GOP|GKF|GCM|GTS)\s?\d{1,3}V?(?:[- ]\d{1,4})?(?:\s?[A-Z]{1,3})?)\b/, // Bosch
     /\b([A-Z]{1,5}-?\d{2,6}[A-Z]{0,3})\b/, // AAEB1010, YMS-005, JFDD0105, AK-3746
-    /\b(\d{5,6})\b/, // WOKIN 738012
+    /\b(\d{5,10})\b/, // WOKIN 738012, Bosch 2607002793, Mitools 1010001
   ];
   for (const re of patterns) {
     const match = name.match(re);

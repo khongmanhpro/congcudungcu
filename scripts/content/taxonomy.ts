@@ -184,7 +184,8 @@ export const RULES: [string, RegExp][] = [
   // --- tuýp & cần siết ---
   ["bo-tuyp", /(bo (dau )?tuyp|bo khau|bo dau khau|bo socket)/],
   ["can-siet-phu-kien", /(can (siet|xiet|lac|tu dong|chu t|noi|vat)|thanh noi|tay noi|khop noi|dau chuyen|cao chuyen|ratchet handle|can tuyp)/],
-  ["dau-tuyp", /(\bdieu\b|dau tuyp|\btuyp\b|dau khau|socket)/],
+  // "điếu" (tuýp chữ L…) — KHÔNG khớp "điều chỉnh"
+  ["dau-tuyp", /(^dieu\b(?! chinh)|\bdieu (chu|l)\b|dau tuyp|\btuyp\b|dau khau|socket)/],
 
   // --- kìm ---
   ["kim-mo-phe", /(kim (mo |bam )?phe|\bphe (trong|ngoai)\b)/],
