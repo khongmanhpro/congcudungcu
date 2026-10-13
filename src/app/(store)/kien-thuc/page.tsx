@@ -98,7 +98,7 @@ function pageHref(page: number, sort: string, topic?: string) {
   if (sort !== "newest") params.set("sort", sort);
   if (topic) params.set("topic", topic);
   const query = params.toString();
-  return query ? `/tin-tuc?${query}` : "/tin-tuc";
+  return query ? `/kien-thuc?${query}` : "/kien-thuc";
 }
 
 export async function generateMetadata({ searchParams }: { searchParams: Promise<BlogSearchParams> }): Promise<Metadata> {
@@ -107,7 +107,7 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
   const filtered = !!(params.topic || params.sort === "oldest");
   const title = `Thư viện Media – Tin tức, hướng dẫn & kinh nghiệm dụng cụ${page > 1 ? ` – Trang ${page}` : ""}`;
   const description = "Tin tức, hướng dẫn sử dụng, kinh nghiệm chọn mua và chia sẻ kỹ thuật về dụng cụ cầm tay, máy móc và thiết bị công nghiệp từ congcudungcu.vn.";
-  const path = filtered ? "/tin-tuc" : pagedPath("/tin-tuc", page);
+  const path = filtered ? "/kien-thuc" : pagedPath("/kien-thuc", page);
   return {
     title,
     description,
@@ -180,7 +180,7 @@ export default async function BlogPage({ searchParams }: { searchParams: Promise
                 return (
                   <Link
                     key={topic.value}
-                    href={active ? "/tin-tuc" : `/tin-tuc?topic=${topic.value}`}
+                    href={active ? "/kien-thuc" : `/kien-thuc?topic=${topic.value}`}
                     className={`flex items-center gap-3 px-4 py-3 text-sm font-semibold transition hover:bg-brand-50 hover:text-brand ${active ? "bg-brand-50 text-brand" : "text-[#344054]"}`}
                   >
                     <Icon className="h-4 w-4 shrink-0 text-brand" />
@@ -197,7 +197,7 @@ export default async function BlogPage({ searchParams }: { searchParams: Promise
               <div className="bg-brand px-4 py-3 text-sm font-black uppercase text-white">Bài viết nổi bật</div>
               <div className="space-y-3 p-3">
                 {featuredPosts.map((post, index) => (
-                  <Link key={post.id} href={`/tin-tuc/${post.slug}`} className="group grid grid-cols-[72px_1fr] gap-3">
+                  <Link key={post.id} href={`/kien-thuc/${post.slug}`} className="group grid grid-cols-[72px_1fr] gap-3">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={getPostImage(post, index)} alt={post.title} className="h-16 w-full rounded object-cover" />
                     <span className="min-w-0">
@@ -296,7 +296,7 @@ export default async function BlogPage({ searchParams }: { searchParams: Promise
 
 function ArticleCard({ post, index }: { post: BlogPost; index: number }) {
   return (
-    <Link href={`/tin-tuc/${post.slug}`} className="group overflow-hidden rounded-md border border-[#dce5f1] bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+    <Link href={`/kien-thuc/${post.slug}`} className="group overflow-hidden rounded-md border border-[#dce5f1] bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
       <div className="relative aspect-[1.55] overflow-hidden bg-[#d8e5f5]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={getPostImage(post, index)} alt={post.title} className="h-full w-full object-cover transition duration-300 group-hover:scale-105" />

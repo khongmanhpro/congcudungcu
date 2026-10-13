@@ -8,7 +8,7 @@ import { formatVND } from "@/lib/format";
 
 interface Suggestion {
   products: { id: string; name: string; slug: string; price: number; salePrice: number | null }[];
-  categories: { id: string; name: string; slug: string }[];
+  categories: { id: string; name: string; slug: string; path: string }[];
 }
 
 type SearchCategory = { id: string; name: string; slug: string };
@@ -167,7 +167,7 @@ export function LiveSearch({ categories = [] }: { categories?: SearchCategory[] 
                   {data!.categories.map((c) => (
                     <Link
                       key={c.id}
-                      href={`/danh-muc/${c.slug}`}
+                      href={c.path}
                       onClick={() => setOpen(false)}
                       className="block px-4 py-2 text-sm hover:bg-neutral-50"
                     >

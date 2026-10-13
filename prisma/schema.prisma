@@ -52,6 +52,14 @@ model Category {
   parent      Category?    @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
   children    Category[]   @relation("CategoryTree")
   type        CategoryType @default(PRODUCT)
+  // SEO & nội dung hub
+  seoTitle    String?
+  seoDesc     String?
+  intro       String?      // 2–3 câu trên lưới sản phẩm
+  content     String?      // HTML dưới lưới: cách chọn, phân loại…
+  faq         Json?        // [{question, answer}]
+  position    Int          @default(0)
+  featured    Boolean      @default(false)
   posts       Post[]
   products    Product[]
   createdAt   DateTime     @default(now())
@@ -79,9 +87,13 @@ model Brand {
   id       String    @id @default(uuid())
   name     String
   slug     String    @unique
-  logoUrl  String?
-  country  String?
-  products Product[]
+  logoUrl     String?
+  country     String?
+  description String?
+  seoTitle    String?
+  seoDesc     String?
+  content     String?   // HTML giới thiệu hãng
+  products    Product[]
 
   @@index([slug])
 }
@@ -105,6 +117,14 @@ model Product {
   featured    Boolean       @default(false)
   weight      Int?          // gram
   dimensions  String?
+  model       String?       // mã model nhà sản xuất (mpn)
+  gtin        String?
+  origin      String?       // xuất xứ
+  seoTitle    String?
+  seoDesc     String?
+  faq         Json?         // [{question, answer}]
+  contentStatus    ContentStatus @default(ORIGINAL)
+  contentUpdatedAt DateTime?
   categoryId  String?
   category    Category?     @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   brandId     String?
@@ -122,6 +142,21 @@ model Product {
   @@index([status])
   @@index([featured])
   @@index([publishedAt])
+}
+
+enum ContentStatus {
+  ORIGINAL  // nội dung gốc (chưa viết lại)
+  AI_DRAFT  // AI đã viết lại, chờ duyệt
+  REVIEWED  // người đã duyệt
+}
+
+/// Chuyển hướng URL cũ → mới (301) khi đổi slug / cấu trúc
+model Redirect {
+  id        String   @id @default(uuid())
+  from      String   @unique // đường dẫn, vd "/danh-muc/cong-cu-dung-cu"
+  to        String
+  code      Int      @default(301)
+  createdAt DateTime @default(now())
 }
 
 enum PublishStatus {

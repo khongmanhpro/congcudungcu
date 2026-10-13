@@ -32,7 +32,7 @@ export function CategoryNavBar({ categories, extras = [] }: { categories: Catalo
         {items.map((category, index) => (
           <li key={category.id} className="shrink-0 border-r border-white/15 last:border-r-0" onMouseEnter={() => open(index)}>
             <Link
-              href={category.slug ? `/danh-muc/${category.slug}` : "/san-pham"}
+              href={category.slug ? `/${category.slug}` : "/san-pham"}
               onClick={() => setActive(null)}
               className={`flex items-center gap-1 whitespace-nowrap px-3 py-3 text-sm font-bold transition xl:px-3.5 ${active === index ? "bg-white/10 text-gold" : "text-white hover:text-gold"}`}
             >
@@ -55,20 +55,21 @@ export function CategoryNavBar({ categories, extras = [] }: { categories: Catalo
           className="absolute inset-x-0 top-full z-50 hidden border border-t-0 border-gold/70 bg-white p-5 shadow-2xl lg:block"
           onMouseEnter={() => active !== null && open(active)}
         >
-          <Link href={current.slug ? `/danh-muc/${current.slug}` : "/san-pham"} onClick={() => setActive(null)} className="mb-3 inline-flex items-center gap-1 text-sm font-bold uppercase text-brand hover:text-gold-dark">
+          <Link href={current.slug ? `/${current.slug}` : "/san-pham"} onClick={() => setActive(null)} className="mb-3 inline-flex items-center gap-1 text-sm font-bold uppercase text-brand hover:text-gold-dark">
             {current.slug ? current.name : "Tất cả sản phẩm"} <ChevronRight className="h-4 w-4" />
           </Link>
           <div className="grid grid-cols-4 gap-x-6 gap-y-4">
             {current.children.map((child) => (
               <div key={child.id} className="min-w-0">
-                <Link href={`/danh-muc/${child.slug}`} onClick={() => setActive(null)} className="block text-sm font-bold text-[#0f172a] hover:text-brand">
+                <Link href={current.slug ? `/${current.slug}/${child.slug}` : `/${child.slug}`} onClick={() => setActive(null)} className="block text-sm font-bold text-[#0f172a] hover:text-brand">
                   {child.name}
                 </Link>
                 {!!child.children?.length && (
                   <ul className="mt-1.5 space-y-1">
                     {child.children.slice(0, 10).map((leaf) => (
                       <li key={leaf.id}>
-                        <Link href={`/danh-muc/${leaf.slug}`} onClick={() => setActive(null)} className="text-[13px] text-[#475569] hover:text-brand">
+                        {/* chỉ xuất hiện trong ô "Danh mục khác": child là danh mục cấp 1, leaf là cấp 2 */}
+                        <Link href={`/${child.slug}/${leaf.slug}`} onClick={() => setActive(null)} className="text-[13px] text-[#475569] hover:text-brand">
                           {leaf.name}
                         </Link>
                       </li>
@@ -112,14 +113,14 @@ export function MobileCategoryDrawer({ categories }: { categories: CatalogCatego
               {categories.map((category) => (
                 <details key={category.id} className="group border-b border-[#edf1f7]">
                   <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-sm font-bold text-[#0f172a]">
-                    <Link href={`/danh-muc/${category.slug}`} onClick={() => setOpen(false)}>{category.name}</Link>
+                    <Link href={`/${category.slug}`} onClick={() => setOpen(false)}>{category.name}</Link>
                     {!!category.children?.length && <ChevronDown className="h-4 w-4 text-[#94a3b8] transition group-open:rotate-180" />}
                   </summary>
                   {!!category.children?.length && (
                     <ul className="bg-brand-50/60 pb-2">
                       {category.children.map((child) => (
                         <li key={child.id}>
-                          <Link href={`/danh-muc/${child.slug}`} onClick={() => setOpen(false)} className="block px-7 py-2 text-[13px] text-[#334155]">
+                          <Link href={`/${category.slug}/${child.slug}`} onClick={() => setOpen(false)} className="block px-7 py-2 text-[13px] text-[#334155]">
                             {child.name}
                           </Link>
                         </li>
@@ -130,7 +131,7 @@ export function MobileCategoryDrawer({ categories }: { categories: CatalogCatego
               ))}
               <div className="space-y-1 p-4 text-sm font-bold text-brand">
                 <Link href="/san-pham" onClick={() => setOpen(false)} className="block py-1.5">Tất cả sản phẩm</Link>
-                <Link href="/tin-tuc" onClick={() => setOpen(false)} className="block py-1.5">Thư viện Media</Link>
+                <Link href="/kien-thuc" onClick={() => setOpen(false)} className="block py-1.5">Thư viện Media</Link>
                 <Link href="/lien-he" onClick={() => setOpen(false)} className="block py-1.5">Liên hệ</Link>
               </div>
             </div>

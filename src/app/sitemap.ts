@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/prisma";
 import { absoluteUrl } from "@/lib/seo";
+import { categoryPath } from "@/lib/urls";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 3600;
@@ -32,7 +33,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           { children: { some: { children: { some: { products: { some: { status: "PUBLISHED" } } } } } } },
         ],
       },
-      select: { slug: true, updatedAt: true, imageUrl: true },
+      select: { slug: true, updatedAt: true, imageUrl: true, parent: { select: { slug: true } } },
     }),
   ]);
 
@@ -42,11 +43,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     { url: absoluteUrl("/"), lastModified, changeFrequency: "daily", priority: 1 },
     { url: absoluteUrl("/san-pham"), lastModified, changeFrequency: "daily", priority: 0.9 },
-    { url: absoluteUrl("/tin-tuc"), lastModified, changeFrequency: "weekly", priority: 0.7 },
+    { url: absoluteUrl("/kien-thuc"), lastModified, changeFrequency: "weekly", priority: 0.7 },
     { url: absoluteUrl("/lien-he"), changeFrequency: "yearly", priority: 0.5 },
     ...POLICY_PAGES.map((slug) => ({ url: absoluteUrl(`/${slug}`), changeFrequency: "yearly" as const, priority: 0.3 })),
     ...categories.map((c) => ({
-      url: absoluteUrl(`/danh-muc/${c.slug}`),
+      url: absoluteUrl(categoryPath(c)),
       lastModified: c.updatedAt,
       changeFrequency: "weekly" as const,
       priority: 0.8,
@@ -60,7 +61,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       images: p.images.length ? p.images.map((img) => absoluteUrl(img.url)) : undefined,
     })),
     ...posts.map((p) => ({
-      url: absoluteUrl(`/tin-tuc/${p.slug}`),
+      url: absoluteUrl(`/kien-thuc/${p.slug}`),
       lastModified: p.updatedAt,
       changeFrequency: "monthly" as const,
       priority: 0.6,

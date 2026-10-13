@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { formatDate } from "@/lib/format";
 import { JsonLd, SITE_NAME, absoluteUrl, breadcrumbJsonLd, getSiteUrl, toMetaDescription } from "@/lib/seo";
 import type { Metadata } from "next";
+import { redirectIfMoved } from "@/lib/redirects";
 
 export const revalidate = 60;
 
@@ -13,7 +14,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!post || post.status !== "PUBLISHED") return { title: "Không tìm thấy bài viết", robots: { index: false, follow: true } };
   const title = post.seoTitle || post.title;
   const description = toMetaDescription(post.seoDesc) || toMetaDescription(post.excerpt) || toMetaDescription(post.content);
-  const path = `/tin-tuc/${post.slug}`;
+  const path = `/kien-thuc/${post.slug}`;
   return {
     title,
     description,
@@ -39,14 +40,17 @@ export default async function PostDetailPage({ params }: { params: Promise<{ slu
     include: { category: true, author: true, tags: true },
   });
 
-  if (!post || post.status !== "PUBLISHED") notFound();
+  if (!post || post.status !== "PUBLISHED") {
+    await redirectIfMoved(`/kien-thuc/${slug}`);
+    notFound();
+  }
 
   const related = await prisma.post.findMany({
     where: { status: "PUBLISHED", categoryId: post.categoryId, id: { not: post.id } },
     take: 3,
   });
 
-  const postUrl = absoluteUrl(`/tin-tuc/${post.slug}`);
+  const postUrl = absoluteUrl(`/kien-thuc/${post.slug}`);
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
@@ -64,8 +68,8 @@ export default async function PostDetailPage({ params }: { params: Promise<{ slu
   };
   const breadcrumb = breadcrumbJsonLd([
     { name: "Trang chủ", path: "/" },
-    { name: "Tin tức", path: "/tin-tuc" },
-    { name: post.title, path: `/tin-tuc/${post.slug}` },
+    { name: "Kiến thức", path: "/kien-thuc" },
+    { name: post.title, path: `/kien-thuc/${post.slug}` },
   ]);
 
   return (
@@ -73,12 +77,12 @@ export default async function PostDetailPage({ params }: { params: Promise<{ slu
       <JsonLd data={[jsonLd, breadcrumb]} />
 
       <nav className="mb-4 text-sm text-muted-foreground">
-        <Link href="/" className="hover:text-primary">Trang chủ</Link> / <Link href="/tin-tuc" className="hover:text-primary">Tin tức</Link> / <span>{post.title}</span>
+        <Link href="/" className="hover:text-primary">Trang chủ</Link> / <Link href="/kien-thuc" className="hover:text-primary">Kiến thức</Link> / <span>{post.title}</span>
       </nav>
 
       <article>
         <div className="mb-3 flex items-center gap-2 text-xs text-muted-foreground">
-          {post.category && <Link href={`/tin-tuc?cat=${post.category.slug}`} className="rounded bg-neutral-100 px-2 py-0.5 hover:bg-neutral-200">{post.category.name}</Link>}
+          {post.category && <Link href={`/kien-thuc?cat=${post.category.slug}`} className="rounded bg-neutral-100 px-2 py-0.5 hover:bg-neutral-200">{post.category.name}</Link>}
           {post.publishedAt && <span>{formatDate(post.publishedAt)}</span>}
           {post.author?.name && <span>· {post.author.name}</span>}
         </div>
@@ -108,7 +112,7 @@ export default async function PostDetailPage({ params }: { params: Promise<{ slu
           <h2 className="mb-4 text-xl font-bold">Bài viết liên quan</h2>
           <div className="grid gap-4 md:grid-cols-3">
             {related.map((r) => (
-              <Link key={r.id} href={`/tin-tuc/${r.slug}`} className="group rounded-lg border bg-white p-4 hover:shadow-md">
+              <Link key={r.id} href={`/kien-thuc/${r.slug}`} className="group rounded-lg border bg-white p-4 hover:shadow-md">
                 <h3 className="text-sm font-medium group-hover:text-primary">{r.title}</h3>
                 {r.excerpt && <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{r.excerpt}</p>}
               </Link>

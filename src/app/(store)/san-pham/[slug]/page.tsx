@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { ProductCard } from "@/components/store/product-card";
 import { getProductStats } from "@/lib/product-stats";
+import { categoryPath } from "@/lib/urls";
+import { redirectIfMoved } from "@/lib/redirects";
 import { JsonLd, absoluteUrl, breadcrumbJsonLd, getSiteUrl, toMetaDescription } from "@/lib/seo";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -38,7 +40,7 @@ type ProductDetail = {
   status: string;
   categoryId: string | null;
   images: { url: string; alt: string | null }[];
-  category: { name: string; slug: string } | null;
+  category: { name: string; slug: string; parent: { name: string; slug: string } | null } | null;
   brand: { name: string } | null;
 };
 
@@ -55,7 +57,7 @@ async function getProduct(slug: string): Promise<ProductDetail | null> {
       where: { slug },
       include: {
         images: { orderBy: { position: "asc" } },
-        category: true,
+        category: { include: { parent: { select: { name: true, slug: true } } } },
         brand: true,
       },
     }) as ProductDetail | null;
@@ -96,7 +98,10 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   const { slug } = await params;
   const product = await getProduct(slug);
 
-  if (!product || product.status !== "PUBLISHED") notFound();
+  if (!product || product.status !== "PUBLISHED") {
+    await redirectIfMoved(`/san-pham/${slug}`);
+    notFound();
+  }
 
   const related = await prisma.product.findMany({
     where: {
@@ -145,7 +150,8 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   const breadcrumb = breadcrumbJsonLd([
     { name: "Trang chủ", path: "/" },
     { name: "Sản phẩm", path: "/san-pham" },
-    ...(product.category ? [{ name: product.category.name, path: `/danh-muc/${product.category.slug}` }] : []),
+    ...(product.category?.parent ? [{ name: product.category.parent.name, path: categoryPath({ slug: product.category.parent.slug }) }] : []),
+    ...(product.category ? [{ name: product.category.name, path: categoryPath(product.category) }] : []),
     { name: product.name, path: `/san-pham/${product.slug}` },
   ]);
   const displayPrice = product.salePrice && product.salePrice > 0 ? product.salePrice : product.price;
@@ -170,7 +176,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           {product.category && (
             <>
               <ChevronRight className="h-4 w-4" />
-              <Link href={`/danh-muc/${product.category.slug}`} className="hover:text-brand">{product.category.name}</Link>
+              <Link href={categoryPath(product.category)} className="hover:text-brand">{product.category.name}</Link>
             </>
           )}
           <ChevronRight className="h-4 w-4" />

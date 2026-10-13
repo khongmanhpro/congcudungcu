@@ -53,3 +53,6 @@ congcudungcu-backup.sql
 
 # Dữ liệu xuất từ scripts/export-data.sh (có dữ liệu khách hàng — không commit)
 /data-export/
+
+# Báo cáo sinh ra bởi scripts/content
+/tmp/

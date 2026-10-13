@@ -23,7 +23,7 @@ export async function getCategoryTree(): Promise<CatalogCategory[]> {
         slug: true,
         imageUrl: true,
         children: {
-          orderBy: { name: "asc" },
+          orderBy: [{ position: "asc" }, { name: "asc" }],
           select: {
             id: true,
             name: true,
@@ -33,8 +33,8 @@ export async function getCategoryTree(): Promise<CatalogCategory[]> {
           },
         },
       },
-      // danh mục nhiều sản phẩm lên trước (menu, danh mục nổi bật)
-      orderBy: [{ products: { _count: "desc" } }, { name: "asc" }],
+      // thứ tự theo taxonomy (scripts/content/taxonomy.ts → Category.position)
+      orderBy: [{ position: "asc" }, { name: "asc" }],
       take: 30,
     });
     return categories.length > 0 ? categories : STANDARD_PRODUCT_CATEGORIES;
@@ -115,7 +115,7 @@ export async function StoreHeader() {
       {/* Thanh danh mục */}
       <nav className="bg-brand">
         <div className="mx-auto max-w-7xl sm:px-4">
-          <CategoryNavBar categories={categories} extras={[{ name: "Thư viện Media", href: "/tin-tuc" }]} />
+          <CategoryNavBar categories={categories} extras={[{ name: "Thư viện Media", href: "/kien-thuc" }]} />
         </div>
       </nav>
     </header>

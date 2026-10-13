@@ -118,7 +118,7 @@ export function PostEditor({ post, categories }: { post: PostData | null; catego
               }}
               placeholder="tu-dong-sinh-tu-tieu-de"
             />
-            <p className="text-xs text-muted-foreground">URL: /tin-tuc/{slug || "..."}</p>
+            <p className="text-xs text-muted-foreground">URL: /kien-thuc/{slug || "..."}</p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="excerpt">Tóm tắt</Label>

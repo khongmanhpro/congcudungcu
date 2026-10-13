@@ -1,24 +1,9 @@
-import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
-import Link from "next/link";
-import { notFound } from "next/navigation";
-import { toMetaDescription } from "@/lib/seo";
 
-export const dynamic = "force-dynamic";
+export type Policy = { key: string; title: string; fallback: string };
 
-export function generateStaticParams() {
-  return [
-    { slug: "chinh-sach-bao-hanh" },
-    { slug: "chinh-sach-doi-tra" },
-    { slug: "van-chuyen" },
-    { slug: "chinh-sach-bao-mat" },
-    { slug: "chinh-sach-ban-hang" },
-    { slug: "phuong-thuc-thanh-toan" },
-    { slug: "tro-thanh-dai-ly" },
-  ];
-}
-
-const POLICIES: Record<string, { key: string; title: string; fallback: string }> = {
+/** Trang chính sách: slug → khoá Setting + nội dung mặc định. */
+export const POLICIES: Record<string, Policy> = {
   "chinh-sach-bao-hanh": {
     key: "policy_warranty",
     title: "Chính sách bảo hành",
@@ -56,42 +41,7 @@ const POLICIES: Record<string, { key: string; title: string; fallback: string }>
   },
 };
 
-async function getPolicy(key: string) {
-  const s = await prisma.setting.findUnique({ where: { key } });
-  return s?.value || null;
-}
-
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-  const { slug } = await params;
-  const meta = POLICIES[slug];
-  if (!meta) return { title: "Không tìm thấy trang", robots: { index: false, follow: true } };
-  const description = toMetaDescription((await getPolicy(meta.key).catch(() => null)) || meta.fallback);
-  return {
-    title: meta.title,
-    description,
-    alternates: { canonical: `/${slug}` },
-    openGraph: { type: "website", url: `/${slug}`, title: meta.title, description, locale: "vi_VN" },
-  };
-}
-
-export default async function PolicyPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
-
-  const meta = POLICIES[slug];
-  // slug lạ → 404 thật (không trả 200 "không tìm thấy" = soft 404)
-  if (!meta) notFound();
-
-  const content = await getPolicy(meta.key);
-
-  return (
-    <div className="mx-auto max-w-3xl px-4 py-8">
-      <nav className="mb-4 text-sm text-muted-foreground">
-        <Link href="/" className="hover:text-primary">Trang chủ</Link> / <span>{meta.title}</span>
-      </nav>
-      <h1 className="mb-6 text-2xl font-bold">{meta.title}</h1>
-      <div className="prose prose-sm max-w-none whitespace-pre-line text-neutral-700">
-        {content || meta.fallback}
-      </div>
-    </div>
-  );
+export async function getPolicyContent(policy: Policy): Promise<string> {
+  const row = await prisma.setting.findUnique({ where: { key: policy.key } }).catch(() => null);
+  return row?.value || policy.fallback;
 }

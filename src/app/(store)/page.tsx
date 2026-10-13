@@ -6,6 +6,7 @@ import { ProductCard, type ProductCardData } from "@/components/store/product-ca
 import { VideoShowcase, type ShowcaseVideo } from "@/components/store/video-showcase";
 import { getProductStats, type ProductStats } from "@/lib/product-stats";
 import { prisma } from "@/lib/prisma";
+import { categoryPath } from "@/lib/urls";
 import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, JsonLd, SITE_NAME, absoluteUrl, getSiteUrl } from "@/lib/seo";
 import type { Metadata } from "next";
 
@@ -73,7 +74,7 @@ export default async function HomePage() {
   const stats = await getProductStats([...new Set([...highlight, ...sale, ...newest].map((p) => p.id))]);
 
   // Danh mục nổi bật: ưu tiên danh mục cấp 2 (cụ thể hơn), dạng nút viên thuốc
-  const subCategories = categoryTree.flatMap((c) => c.children ?? []);
+  const subCategories = categoryTree.flatMap((c) => (c.children ?? []).map((child) => ({ ...child, parent: { slug: c.slug } })));
   const chips = (subCategories.length >= 6 ? subCategories : categoryTree).slice(0, 14);
 
   const configuredBanners = parsePipeLines(settings.home_banners).map(([image, title, subtitle, href]) => ({
@@ -138,7 +139,7 @@ export default async function HomePage() {
               {chips.map((category) => (
                 <Link
                   key={category.id}
-                  href={`/danh-muc/${category.slug}`}
+                  href={categoryPath(category)}
                   className="rounded-full border border-gold px-3 py-1.5 text-[13px] font-bold text-[#0f172a] transition hover:bg-gold hover:text-brand-dark"
                 >
                   {category.name}

@@ -6,6 +6,13 @@ const uploadsFallbackOrigin = process.env.UPLOADS_FALLBACK_ORIGIN;
 
 const nextConfig: NextConfig = {
   output: 'standalone',
+  async redirects() {
+    // Đổi /tin-tuc → /kien-thuc (301 để chuyển toàn bộ giá trị SEO)
+    return [
+      { source: "/tin-tuc", destination: "/kien-thuc", statusCode: 301 },
+      { source: "/tin-tuc/:slug*", destination: "/kien-thuc/:slug*", statusCode: 301 },
+    ];
+  },
   async rewrites() {
     if (!uploadsFallbackOrigin) return [];
     return {
