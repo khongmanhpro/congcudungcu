@@ -105,7 +105,7 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
   const params = await searchParams;
   const page = Math.max(1, Number(params.page || "1") || 1);
   const filtered = !!(params.topic || params.sort === "oldest");
-  const title = `Thư viện Media – Tin tức, hướng dẫn & kinh nghiệm dụng cụ${page > 1 ? ` – Trang ${page}` : ""}`;
+  const title = `Kiến thức dụng cụ: hướng dẫn & kinh nghiệm${page > 1 ? ` – Trang ${page}` : ""}`;
   const description = "Tin tức, hướng dẫn sử dụng, kinh nghiệm chọn mua và chia sẻ kỹ thuật về dụng cụ cầm tay, máy móc và thiết bị công nghiệp từ congcudungcu.vn.";
   const path = filtered ? "/kien-thuc" : pagedPath("/kien-thuc", page);
   return {
