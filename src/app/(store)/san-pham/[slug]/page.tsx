@@ -1,7 +1,11 @@
 import Link from "next/link";
 import { ProductCard } from "@/components/store/product-card";
 import { getProductStats } from "@/lib/product-stats";
-import { categoryPath } from "@/lib/urls";
+import { brandPath, categoryPath } from "@/lib/urls";
+import { faqJsonLd, parseFaq } from "@/components/store/faq-section";
+
+/** Phí giao hàng cố định — khớp shippingFee trong src/app/api/checkout/route.ts */
+const SHIPPING_FEE = 30000;
 import { redirectIfMoved } from "@/lib/redirects";
 import { JsonLd, absoluteUrl, breadcrumbJsonLd, getSiteUrl, toMetaDescription } from "@/lib/seo";
 import type { Metadata } from "next";
@@ -41,7 +45,14 @@ type ProductDetail = {
   categoryId: string | null;
   images: { url: string; alt: string | null }[];
   category: { name: string; slug: string; parent: { name: string; slug: string } | null } | null;
-  brand: { name: string } | null;
+  brand: { id: string; name: string; slug: string } | null;
+  brandId: string | null;
+  model: string | null;
+  gtin: string | null;
+  origin: string | null;
+  seoTitle: string | null;
+  seoDesc: string | null;
+  faq: unknown;
 };
 
 function normalizeProductHtml(html: string) {
@@ -69,6 +80,7 @@ async function getProduct(slug: string): Promise<ProductDetail | null> {
 /** Mô tả meta: ưu tiên mô tả ngắn → mô tả dài → câu tự sinh từ tên/thương hiệu/mã. */
 function productDescription(product: ProductDetail) {
   return (
+    toMetaDescription(product.seoDesc) ||
     toMetaDescription(product.shortDesc) ||
     toMetaDescription(product.description) ||
     toMetaDescription(
@@ -84,13 +96,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const description = productDescription(product);
   const path = `/san-pham/${product.slug}`;
   const images = product.images.slice(0, 4).map((image) => ({ url: absoluteUrl(image.url), alt: image.alt || product.name }));
+  const title = product.seoTitle || product.name;
   return {
-    // Tên dài (>55 ký tự) thì bỏ hậu tố "| congcudungcu.vn" để Google không cắt mất phần tên quan trọng
-    title: product.name.length > 55 ? { absolute: product.name } : product.name,
+    // Tiêu đề dài (>55 ký tự) thì bỏ hậu tố "| congcudungcu.vn" để Google không cắt mất phần quan trọng
+    title: title.length > 55 ? { absolute: title } : title,
     description,
     alternates: { canonical: path },
-    openGraph: { type: "website", url: path, title: product.name, description, images, locale: "vi_VN" },
-    twitter: { card: "summary_large_image", title: product.name, description, images: images.map((image) => image.url) },
+    openGraph: { type: "website", url: path, title, description, images, locale: "vi_VN" },
+    twitter: { card: "summary_large_image", title, description, images: images.map((image) => image.url) },
   };
 }
 
@@ -103,19 +116,29 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     notFound();
   }
 
-  const related = await prisma.product.findMany({
-    where: {
-      status: "PUBLISHED",
-      categoryId: product.categoryId,
-      id: { not: product.id },
-    },
-    take: 6,
-    include: { images: { take: 1, orderBy: { position: "asc" } }, brand: { select: { name: true } } },
-  }).catch(() => []);
+  const cardInclude = { images: { take: 1, orderBy: { position: "asc" as const } }, brand: { select: { name: true } } };
+  const [related, sameBrand] = await Promise.all([
+    prisma.product.findMany({
+      where: { status: "PUBLISHED", categoryId: product.categoryId, id: { not: product.id } },
+      take: 6,
+      include: cardInclude,
+      orderBy: [{ featured: "desc" }, { publishedAt: { sort: "desc", nulls: "last" } }, { id: "asc" }],
+    }).catch(() => []),
+    product.brandId
+      ? prisma.product.findMany({
+          where: { status: "PUBLISHED", brandId: product.brandId, id: { not: product.id }, categoryId: { not: product.categoryId } },
+          take: 6,
+          include: cardInclude,
+          orderBy: [{ featured: "desc" }, { publishedAt: { sort: "desc", nulls: "last" } }, { id: "asc" }],
+        }).catch(() => [])
+      : Promise.resolve([]),
+  ]);
+  const faq = parseFaq(product.faq);
 
-  const stats = await getProductStats([product.id, ...related.map((p) => p.id)]);
+  const stats = await getProductStats([product.id, ...related.map((p) => p.id), ...sameBrand.map((p) => p.id)]);
   const own = stats.get(product.id);
   const productUrl = absoluteUrl(`/san-pham/${product.slug}`);
+  const specsForLd = ((product.specs as { items?: { label: string; value: string }[] } | null)?.items || []).filter((i) => i.label && i.value).slice(0, 20);
   const offerPrice = product.salePrice && product.salePrice > 0 ? product.salePrice : product.price;
   const jsonLd = {
     "@context": "https://schema.org",
@@ -124,11 +147,16 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     name: product.name,
     url: productUrl,
     description: productDescription(product),
-    sku: product.sku || undefined,
-    mpn: product.sku || undefined,
-    brand: product.brand ? { "@type": "Brand", name: product.brand.name } : undefined,
+    sku: product.sku || product.model || undefined,
+    mpn: product.model || product.sku || undefined,
+    gtin: product.gtin || undefined,
+    countryOfOrigin: product.origin || undefined,
+    brand: product.brand ? { "@type": "Brand", name: product.brand.name, url: absoluteUrl(brandPath(product.brand.slug)) } : undefined,
     category: product.category?.name,
     image: product.images.map((i) => absoluteUrl(i.url)),
+    additionalProperty: specsForLd.length
+      ? specsForLd.map((item) => ({ "@type": "PropertyValue", name: item.label, value: item.value }))
+      : undefined,
     // Sản phẩm "Liên hệ" (giá 0) không khai báo Offer để Google không hiển thị "0 ₫"
     offers:
       offerPrice > 0
@@ -140,6 +168,24 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             itemCondition: "https://schema.org/NewCondition",
             availability: product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
             seller: { "@id": `${getSiteUrl()}/#organization` },
+            // theo chính sách đang công bố: phí ship cố định (api/checkout), giao 2–5 ngày, đổi trả 7 ngày
+            shippingDetails: {
+              "@type": "OfferShippingDetails",
+              shippingRate: { "@type": "MonetaryAmount", value: SHIPPING_FEE, currency: "VND" },
+              shippingDestination: { "@type": "DefinedRegion", addressCountry: "VN" },
+              deliveryTime: {
+                "@type": "ShippingDeliveryTime",
+                handlingTime: { "@type": "QuantitativeValue", minValue: 0, maxValue: 1, unitCode: "DAY" },
+                transitTime: { "@type": "QuantitativeValue", minValue: 2, maxValue: 5, unitCode: "DAY" },
+              },
+            },
+            hasMerchantReturnPolicy: {
+              "@type": "MerchantReturnPolicy",
+              applicableCountry: "VN",
+              returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
+              merchantReturnDays: 7,
+              returnMethod: "https://schema.org/ReturnByMail",
+            },
           }
         : undefined,
     aggregateRating:
@@ -147,6 +193,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         ? { "@type": "AggregateRating", ratingValue: own.rating, reviewCount: own.reviewCount, bestRating: 5, worstRating: 1 }
         : undefined,
   };
+  const faqLd = faq.length ? [faqJsonLd(faq)] : [];
   const breadcrumb = breadcrumbJsonLd([
     { name: "Trang chủ", path: "/" },
     { name: "Sản phẩm", path: "/san-pham" },
@@ -166,7 +213,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
   return (
     <div className="bg-[#f4f7fb] text-[#172033]">
-      <JsonLd data={[jsonLd, breadcrumb]} />
+      <JsonLd data={[jsonLd, breadcrumb, ...faqLd]} />
 
       <div className="mx-auto max-w-7xl px-3 py-5 sm:px-4 sm:py-6">
         <nav className="mb-4 flex flex-nowrap items-center gap-2 overflow-x-auto whitespace-nowrap text-xs text-[#667085] sm:mb-5 sm:flex-wrap sm:text-sm">
@@ -190,8 +237,11 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_270px]">
               <div>
                 <div className="mb-2 flex flex-wrap items-center gap-3">
-                  {product.brand && <span className="text-lg font-black uppercase text-price">{product.brand.name}</span>}
+                  {product.brand && (
+                    <Link href={brandPath(product.brand.slug)} className="text-lg font-black uppercase text-price hover:underline">{product.brand.name}</Link>
+                  )}
                   {product.brand && <span className="text-sm text-[#667085]">Thương hiệu</span>}
+                  {product.origin && <span className="text-sm text-[#667085]">· Xuất xứ: {product.origin}</span>}
                 </div>
                 <h1 className="text-xl font-bold leading-snug text-[#172033] md:text-2xl">{product.name}</h1>
 
@@ -202,6 +252,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                   </span>
                   <span className="text-[#475569]">Đã bán {own?.sold ?? 0}</span>
                   {product.sku && <span className="text-[#667085]">SKU: <strong className="text-[#344054]">{product.sku}</strong></span>}
+                  {product.model && product.model !== product.sku && <span className="text-[#667085]">Model: <strong className="text-[#344054]">{product.model}</strong></span>}
                 </div>
 
                 <div className="mt-4 flex flex-wrap items-center gap-4 text-sm">
@@ -316,17 +367,35 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           shortDesc={product.shortDesc}
           specsItems={specsItems}
           productId={product.id}
+          faq={faq}
         />
 
-      {/* Related */}
+      {/* Cùng danh mục */}
       {related.length > 0 && (
         <section className="mt-6 sm:mt-8">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-base font-black uppercase text-brand sm:text-xl">Sản phẩm liên quan</h2>
-            <Link href="/san-pham" className="text-sm font-bold text-brand hover:underline">Xem tất cả →</Link>
+            <h2 className="text-base font-black uppercase text-brand sm:text-xl">
+              {product.category ? `${product.category.name} khác` : "Sản phẩm liên quan"}
+            </h2>
+            <Link href={product.category ? categoryPath(product.category) : "/san-pham"} className="text-sm font-bold text-brand hover:underline">Xem tất cả →</Link>
           </div>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
             {related.map((p) => (
+              <ProductCard key={p.id} product={p} stats={stats.get(p.id)} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Cùng thương hiệu (khác danh mục) — liên kết nội bộ tới trang hãng */}
+      {product.brand && sameBrand.length > 0 && (
+        <section className="mt-6 sm:mt-8">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-base font-black uppercase text-brand sm:text-xl">Sản phẩm {product.brand.name} khác</h2>
+            <Link href={brandPath(product.brand.slug)} className="text-sm font-bold text-brand hover:underline">Tất cả {product.brand.name} →</Link>
+          </div>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+            {sameBrand.map((p) => (
               <ProductCard key={p.id} product={p} stats={stats.get(p.id)} />
             ))}
           </div>

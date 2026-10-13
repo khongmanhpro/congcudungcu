@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { HelpCircle, MessageSquareText, Star } from "lucide-react";
+import { HelpCircle, MessageSquareText } from "lucide-react";
 import { ProductReviews } from "./product-reviews";
 
 type DetailTab = "description" | "specs" | "reviews" | "qa";
@@ -19,11 +19,13 @@ export function ProductDetailTabs({
   shortDesc,
   specsItems,
   productId,
+  faq = [],
 }: {
   descriptionHtml: string;
   shortDesc: string | null;
   specsItems: { label: string; value: string }[];
   productId: string;
+  faq?: { question: string; answer: string }[];
 }) {
   const [active, setActive] = useState<DetailTab>("description");
 
@@ -34,6 +36,9 @@ export function ProductDetailTabs({
           <button
             key={tab.id}
             type="button"
+            role="tab"
+            aria-selected={active === tab.id}
+            aria-controls={`tab-${tab.id}`}
             onClick={() => setActive(tab.id)}
             className={`shrink-0 border-b-2 px-4 py-3 text-left transition sm:px-6 sm:py-4 ${
               active === tab.id
@@ -47,8 +52,8 @@ export function ProductDetailTabs({
       </div>
 
       <div className="p-4 sm:p-6 lg:p-8">
-        {active === "description" && (
-          <section>
+        {/* Mô tả, thông số, hỏi đáp luôn render sẵn (Google/AI đọc được), tab chỉ ẩn/hiện */}
+        <section id="tab-description" role="tabpanel" hidden={active !== "description"}>
             <h2 className="mb-5 text-xl font-black text-[#172033]">Mô tả sản phẩm</h2>
             {descriptionHtml ? (
               <div
@@ -58,11 +63,9 @@ export function ProductDetailTabs({
             ) : (
               <p className="text-sm leading-7 text-[#667085]">{shortDesc || "Sản phẩm đang được cập nhật mô tả."}</p>
             )}
-          </section>
-        )}
+        </section>
 
-        {active === "specs" && (
-          <section>
+        <section id="tab-specs" role="tabpanel" hidden={active !== "specs"}>
             <h2 className="mb-5 text-xl font-black text-[#172033]">Thông số kỹ thuật</h2>
             {specsItems.length > 0 ? (
               <div className="overflow-hidden rounded-md border border-[#dce5f1]">
@@ -80,23 +83,36 @@ export function ProductDetailTabs({
             ) : (
               <p className="text-sm text-[#667085]">Thông số kỹ thuật đang được cập nhật.</p>
             )}
-          </section>
-        )}
+        </section>
 
+        {/* đánh giá tải phía client khi mở tab */}
         {active === "reviews" && (
-          <section>
+          <section id="tab-reviews" role="tabpanel">
             <ProductReviews productId={productId} />
           </section>
         )}
 
-        {active === "qa" && (
-          <section className="rounded-md bg-brand-50 p-5">
+        <section id="tab-qa" role="tabpanel" hidden={active !== "qa"}>
+          {faq.length > 0 && (
+            <div className="mb-5">
+              <h2 className="mb-3 text-xl font-black text-[#172033]">Câu hỏi thường gặp</h2>
+              <dl className="divide-y divide-[#e2e8f0] rounded-md border border-[#e2e8f0]">
+                {faq.map((item, index) => (
+                  <div key={index} className="p-4">
+                    <dt className="text-[15px] font-bold text-[#0f172a]">{item.question}</dt>
+                    <dd className="mt-1.5 whitespace-pre-line text-sm leading-6 text-[#334155]">{item.answer}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          )}
+          <div className="rounded-md bg-brand-50 p-5">
             <div className="flex items-start gap-4">
               <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-brand-50 text-brand">
                 <HelpCircle className="h-5 w-5" />
               </div>
               <div>
-                <h2 className="text-xl font-black text-[#172033]">Hỏi đáp sản phẩm</h2>
+                <h3 className="text-lg font-black text-[#172033]">Bạn có câu hỏi khác?</h3>
                 <p className="mt-2 max-w-3xl text-sm leading-6 text-[#667085]">
                   Gửi câu hỏi về thông số, tồn kho, bảo hành hoặc báo giá. Đội ngũ tư vấn sẽ phản hồi theo thông tin liên hệ của bạn.
                 </p>
@@ -109,16 +125,8 @@ export function ProductDetailTabs({
                 </Link>
               </div>
             </div>
-          </section>
-        )}
-
-        {active === "reviews" && (
-          <div className="mt-6 hidden rounded-md bg-brand-50 p-5 text-[#ffae00] lg:block">
-            {Array.from({ length: 5 }).map((_, index) => (
-              <Star key={index} className="inline h-4 w-4 fill-current" />
-            ))}
           </div>
-        )}
+        </section>
       </div>
     </section>
   );
