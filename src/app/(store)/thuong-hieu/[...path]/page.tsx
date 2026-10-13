@@ -170,7 +170,7 @@ export default async function BrandPage({ params, searchParams }: Params) {
 
         {page === 1 && !category && brand.content && (
           <section className="rounded-lg border border-gold bg-white p-4">
-            <div className="product-content max-w-4xl text-[15px] leading-7 text-[#334155]" dangerouslySetInnerHTML={{ __html: brand.content }} />
+            <div className="rich-content max-w-4xl" dangerouslySetInnerHTML={{ __html: brand.content }} />
           </section>
         )}
       </div>

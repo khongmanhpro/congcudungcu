@@ -9,7 +9,7 @@ import { getProductStats } from "@/lib/product-stats";
 import { POLICIES, getPolicyContent } from "@/lib/policies";
 import { redirectIfMoved } from "@/lib/redirects";
 import { JsonLd, absoluteUrl, breadcrumbJsonLd, pagedPath, toMetaDescription } from "@/lib/seo";
-import { BRAND_CATEGORY_MIN, brandPath, categoryPath, productPath } from "@/lib/urls";
+import { BRAND_CATEGORY_MIN, brandPath, categoryPath, postPath, productPath } from "@/lib/urls";
 import { ProductCard } from "@/components/store/product-card";
 import { FaqSection, faqJsonLd, parseFaq } from "@/components/store/faq-section";
 import { Pagination } from "@/components/store/pagination";
@@ -146,6 +146,18 @@ async function CategoryView({ category, page }: { category: NonNullable<Awaited<
   const childCount = new Map(childCounts.map((r) => [r.categoryId, r._count._all]));
   const faq = parseFaq(category.faq);
   const path = categoryPath(category);
+  // bài kiến thức có link tới (hoặc nhắc tên) danh mục này → liên kết hai chiều danh mục ↔ bài viết
+  const guides = await prisma.post
+    .findMany({
+      where: {
+        status: "PUBLISHED",
+        OR: [{ content: { contains: `href="${path}"` } }, { content: { contains: category.name, mode: "insensitive" } }],
+      },
+      orderBy: { publishedAt: "desc" },
+      take: 4,
+      select: { id: true, slug: true, title: true, excerpt: true },
+    })
+    .catch(() => []);
   const intro = category.intro || defaultCategoryDescription(category.name, total, category.children);
 
   const breadcrumb = breadcrumbJsonLd([
@@ -238,7 +250,20 @@ async function CategoryView({ category, page }: { category: NonNullable<Awaited<
 
         {page === 1 && category.content && (
           <section className="rounded-lg border border-gold bg-white p-4">
-            <div className="product-content max-w-4xl text-[15px] leading-7 text-[#334155]" dangerouslySetInnerHTML={{ __html: category.content }} />
+            <div className="rich-content max-w-4xl" dangerouslySetInnerHTML={{ __html: category.content }} />
+          </section>
+        )}
+        {page === 1 && guides.length > 0 && (
+          <section className="rounded-lg border border-gold bg-white p-4">
+            <h2 className="mb-3 text-lg font-black text-[#0f172a]">Bài viết hướng dẫn</h2>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {guides.map((g) => (
+                <Link key={g.id} href={postPath(g.slug)} className="rounded-md border border-[#e2e8f0] p-3 transition hover:border-gold hover:shadow-sm">
+                  <h3 className="text-[15px] font-bold text-[#0f172a]">{g.title}</h3>
+                  {g.excerpt && <p className="mt-1 line-clamp-2 text-[13px] text-[#475569]">{g.excerpt}</p>}
+                </Link>
+              ))}
+            </div>
           </section>
         )}
         {page === 1 && <FaqSection items={faq} title={`Câu hỏi thường gặp về ${category.name.toLowerCase()}`} />}

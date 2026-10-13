@@ -124,6 +124,10 @@ async function main() {
     await prisma.category.deleteMany({ where: { id: { in: oldCategories.map((c) => c.id) } } });
   }
 
+  // 6b) Xoá thương hiệu rỗng (vd dữ liệu demo cũ "AUTO WORK" trùng AUTOWORK) — không có sản phẩm thì không có trang
+  const emptyBrands = await prisma.brand.deleteMany({ where: { products: { none: {} } } });
+  if (emptyBrands.count) console.log(`Xoá ${emptyBrands.count} thương hiệu không có sản phẩm.`);
+
   // 7) Ảnh đại diện danh mục = ảnh sản phẩm mới nhất trong cây (nếu chưa có)
   for (const node of nodes) {
     const id = idBySlug.get(node.slug)!;

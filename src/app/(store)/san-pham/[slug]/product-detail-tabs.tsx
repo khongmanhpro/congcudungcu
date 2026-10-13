@@ -57,7 +57,7 @@ export function ProductDetailTabs({
             <h2 className="mb-5 text-xl font-black text-[#172033]">Mô tả sản phẩm</h2>
             {descriptionHtml ? (
               <div
-                className="prose prose-sm max-w-none text-[#344054] lg:prose-base [&_img]:mx-auto [&_img]:h-auto [&_img]:max-w-full [&_img]:rounded-md [&_img]:border [&_img]:border-[#dce5f1] [&_p]:leading-7"
+                className="rich-content max-w-none"
                 dangerouslySetInnerHTML={{ __html: descriptionHtml }}
               />
             ) : (

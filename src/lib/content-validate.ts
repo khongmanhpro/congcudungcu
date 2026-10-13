@@ -92,3 +92,36 @@ export function validateDraft(draft: ProductDraft, sourceText: string, oldDescri
 }
 
 export const stripHtmlText = stripHtml;
+
+/**
+ * Kiểm tra nội dung hub (danh mục, thương hiệu, bài kiến thức): thẻ HTML cho phép (kể cả <a> nội bộ),
+ * từ cấm, độ dài SEO, link nội bộ có tồn tại không (truyền `knownPaths`).
+ */
+export function validateHubContent(
+  item: { seoTitle?: string | null; seoDesc?: string | null; html?: string | null; texts?: (string | null | undefined)[] },
+  options: { titleMax?: number; knownPaths?: Set<string> } = {},
+): DraftIssue[] {
+  const issues: DraftIssue[] = [];
+  const add = (level: DraftIssue["level"], code: string, message: string) => issues.push({ level, code, message });
+  const titleMax = options.titleMax ?? 45;
+  const html = item.html ?? "";
+
+  if (item.seoTitle && item.seoTitle.length > titleMax) add("warning", "seo_title_long", `Tiêu đề SEO ${item.seoTitle.length} ký tự (nên ≤ ${titleMax}).`);
+  if (item.seoDesc && (item.seoDesc.length < 110 || item.seoDesc.length > 165)) add("warning", "seo_desc_length", `Mô tả SEO ${item.seoDesc.length} ký tự (nên 130–155).`);
+
+  const tags = [...html.matchAll(/<\/?([a-z0-9]+)[^>]*>/gi)].map((m) => m[1].toLowerCase());
+  const badTags = [...new Set(tags.filter((t) => t !== "a" && !ALLOWED_TAGS.has(t)))];
+  if (badTags.length) add("error", "html_tags", `Thẻ HTML không cho phép: ${badTags.join(", ")}.`);
+  if (/\s(class|style|id|on\w+)=/i.test(html)) add("error", "html_attrs", "HTML có thuộc tính class/style/id/sự kiện.");
+
+  for (const m of html.matchAll(/<a\b([^>]*)>/gi)) {
+    const href = m[1].match(/href="([^"]*)"/)?.[1];
+    if (!href || !href.startsWith("/")) add("error", "external_link", `Link không phải nội bộ: ${href ?? "(trống)"}.`);
+    else if (options.knownPaths && !options.knownPaths.has(href.split(/[?#]/)[0])) add("error", "broken_link", `Link nội bộ không tồn tại: ${href}.`);
+  }
+
+  const lower = [stripHtml(html), item.seoTitle, item.seoDesc, ...(item.texts ?? [])].filter(Boolean).join(" ").toLowerCase();
+  const banned = BANNED.filter((phrase) => lower.includes(phrase));
+  if (banned.length) add("error", "banned_phrase", `Có cụm từ cấm: ${banned.join(", ")}.`);
+  return issues;
+}

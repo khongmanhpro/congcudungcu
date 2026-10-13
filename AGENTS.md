@@ -101,3 +101,16 @@
 - lucide-react v1: không có Youtube/Facebook icon → dùng text "FB"/"YT"
 - Prisma: `Order.customerId` (không phải userId), `Setting` (không phải SiteSettings), `QuoteRequest.content` (không phải message)
 - publishedAt serialize ISO string cho client components
+
+## Nội dung & SEO (content-as-code)
+- Nội dung danh mục/thương hiệu/bài kiến thức lưu trong repo: `content/categories.json`, `content/brands.json`, `content/posts/*.md` → nạp bằng `pnpm exec tsx scripts/content/apply-content.ts` (có `--dry-run`, kiểm tra link nội bộ, idempotent).
+- Taxonomy + thương hiệu + mã model: `scripts/content/taxonomy.ts`, `brands.ts` → `pnpm exec tsx scripts/content/classify.ts` (có `--dry-run`, báo cáo `tmp/content-reports/classify.csv`).
+- Viết lại mô tả sản phẩm: `scripts/content/rewrite.ts` (`facts`/`import` khi viết bằng Claude Code; `submit`/`collect` khi dùng API) → duyệt ở `/admin/content-review`.
+- Kiểm tra SEO onpage: `node scripts/seo-audit.mjs [baseUrl] [mẫu/loại]`.
+- **Quy trình khi nạp dump dữ liệu thật** (import-data.sh XOÁ SẠCH DB — nội dung nằm trong repo nên nạp lại được):
+  1. `bash scripts/import-data.sh <thư mục dump>`
+  2. `pnpm exec prisma migrate deploy`
+  3. `pnpm exec tsx scripts/content/classify.ts`
+  4. `pnpm exec tsx scripts/content/apply-content.ts`
+- URL: danh mục ở gốc (`/kim/kim-cat`), sản phẩm `/san-pham/<slug>`, hãng `/thuong-hieu/<slug>[/<danh-mục>]`, bài `/kien-thuc/<slug>`. Luôn tạo link bằng `src/lib/urls.ts`. Đổi slug trong admin tự tạo redirect 301 (`Redirect`).
+- Env bắt buộc khi deploy: `SITE_URL=https://congcudungcu.vn` (canonical/sitemap/robots đọc lúc chạy), `JWT_SECRET` ngẫu nhiên, tùy chọn `INDEXNOW_KEY`.

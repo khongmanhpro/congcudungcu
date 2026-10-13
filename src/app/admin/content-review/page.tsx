@@ -77,7 +77,7 @@ export default async function ContentReviewPage({ searchParams }: { searchParams
                   <p><strong>Mô tả ngắn:</strong> {draft.shortDesc}</p>
                   <details>
                     <summary className="cursor-pointer font-semibold">Mô tả chi tiết</summary>
-                    <div className="prose prose-sm mt-2 max-w-none" dangerouslySetInnerHTML={{ __html: draft.descriptionHtml }} />
+                    <div className="rich-content mt-2 max-w-none" dangerouslySetInnerHTML={{ __html: draft.descriptionHtml }} />
                   </details>
                   {draft.specs.length > 0 && (
                     <details>
