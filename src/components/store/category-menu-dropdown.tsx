@@ -11,7 +11,11 @@ type NavExtra = { name: string; href: string };
 export function CategoryNavBar({ categories, extras = [] }: { categories: CatalogCategory[]; extras?: NavExtra[] }) {
   const [active, setActive] = useState<number | null>(null);
   const closeTimer = useRef<number | null>(null);
-  const items = categories.slice(0, 8);
+  // Tối đa 7 ô; dư thì 6 ô đầu + ô "Danh mục khác" chứa phần còn lại (vừa 1 hàng ở 1280px)
+  const items: CatalogCategory[] =
+    categories.length > 7
+      ? [...categories.slice(0, 6), { id: "__more", name: "Danh mục khác", slug: "", children: categories.slice(6) }]
+      : categories;
   const current = active !== null ? items[active] : null;
 
   const open = (index: number) => {
@@ -28,17 +32,18 @@ export function CategoryNavBar({ categories, extras = [] }: { categories: Catalo
         {items.map((category, index) => (
           <li key={category.id} className="shrink-0 border-r border-white/15 last:border-r-0" onMouseEnter={() => open(index)}>
             <Link
-              href={`/danh-muc/${category.slug}`}
+              href={category.slug ? `/danh-muc/${category.slug}` : "/san-pham"}
               onClick={() => setActive(null)}
-              className={`block whitespace-nowrap px-4 py-3 text-sm font-bold transition ${active === index ? "bg-white/10 text-gold" : "text-white hover:text-gold"}`}
+              className={`flex items-center gap-1 whitespace-nowrap px-3 py-3 text-sm font-bold transition xl:px-3.5 ${active === index ? "bg-white/10 text-gold" : "text-white hover:text-gold"}`}
             >
               {category.name}
+              {!category.slug && <ChevronDown className="h-4 w-4" />}
             </Link>
           </li>
         ))}
         {extras.map((extra) => (
           <li key={extra.href} className="shrink-0 border-l border-white/15" onMouseEnter={() => setActive(null)}>
-            <Link href={extra.href} className="block whitespace-nowrap px-4 py-3 text-sm font-bold text-white hover:text-gold">
+            <Link href={extra.href} className="block whitespace-nowrap px-3 py-3 text-sm font-bold text-white hover:text-gold xl:px-3.5">
               {extra.name}
             </Link>
           </li>
@@ -50,8 +55,8 @@ export function CategoryNavBar({ categories, extras = [] }: { categories: Catalo
           className="absolute inset-x-0 top-full z-50 hidden border border-t-0 border-gold/70 bg-white p-5 shadow-2xl lg:block"
           onMouseEnter={() => active !== null && open(active)}
         >
-          <Link href={`/danh-muc/${current.slug}`} onClick={() => setActive(null)} className="mb-3 inline-flex items-center gap-1 text-sm font-bold uppercase text-brand hover:text-gold-dark">
-            {current.name} <ChevronRight className="h-4 w-4" />
+          <Link href={current.slug ? `/danh-muc/${current.slug}` : "/san-pham"} onClick={() => setActive(null)} className="mb-3 inline-flex items-center gap-1 text-sm font-bold uppercase text-brand hover:text-gold-dark">
+            {current.slug ? current.name : "Tất cả sản phẩm"} <ChevronRight className="h-4 w-4" />
           </Link>
           <div className="grid grid-cols-4 gap-x-6 gap-y-4">
             {current.children.map((child) => (

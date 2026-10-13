@@ -33,7 +33,8 @@ export async function getCategoryTree(): Promise<CatalogCategory[]> {
           },
         },
       },
-      orderBy: { name: "asc" },
+      // danh mục nhiều sản phẩm lên trước (menu, danh mục nổi bật)
+      orderBy: [{ products: { _count: "desc" } }, { name: "asc" }],
       take: 30,
     });
     return categories.length > 0 ? categories : STANDARD_PRODUCT_CATEGORIES;
