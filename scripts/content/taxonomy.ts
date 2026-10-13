@@ -197,6 +197,8 @@ export const RULES: [string, RegExp][] = [
   ["kim-chet-kim-kep", /(kim (chet|bam chet|kep|giu)|kim kep|kim bam chet)/],
   ["kim-mo-qua-kim-nuoc", /(mo qua|kim (nuoc|ong|ong nuoc|so|mo lech))/],
   ["kim-mui-nhon", /(kim (mui|mo) ?(nhon|dai|cong|det|tron|bang)|kim mui)/],
+  // "kìm cắt tổng hợp", "kìm cắt đa năng" là kìm tổng hợp (kìm điện), xét trước "kìm cắt"
+  ["kim-dien-kim-tong-hop", /\bkim (cat |dien )?(tong hop|da nang)\b/],
   ["kim-cat", /(kim cat|kim cong luc|kim (bam )?cat)/],
   ["kim-dien-kim-tong-hop", /(kim (dien|tong hop|da nang|rang|cach dien|vde|co khi|dau bang|bam))/],
   // chỉ khi tên bắt đầu bằng "kìm"/"bộ kìm" — tránh nhầm "kim loại"

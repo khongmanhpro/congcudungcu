@@ -71,6 +71,19 @@ async function knownPaths() {
   return paths;
 }
 
+/**
+ * Trang hãng × danh mục chỉ tồn tại khi hãng có ≥ 6 sản phẩm trong danh mục — số này đổi theo dữ liệu
+ * (phân loại lại, nạp dump). Link tới trang không còn tồn tại → tự đổi về trang hãng, kèm cảnh báo.
+ */
+function downgradeBrandCategoryLinks(html: string | undefined, paths: Set<string>, notes: string[]) {
+  if (!html) return html;
+  return html.replace(/href="(\/thuong-hieu\/([^"/]+)\/[^"/]+)"/g, (whole, href: string, brand: string) => {
+    if (paths.has(href) || !paths.has(`/thuong-hieu/${brand}`)) return whole;
+    notes.push(`${href} → /thuong-hieu/${brand}`);
+    return `href="/thuong-hieu/${brand}"`;
+  });
+}
+
 function report(label: string, issues: DraftIssue[]) {
   if (issues.length) console.log(`  ${issues.some((i) => i.level === "error") ? "✗" : "!"} ${label}\n      ${issues.map((i) => `[${i.level}] ${i.message}`).join("\n      ")}`);
 }
@@ -88,6 +101,9 @@ async function main() {
 
   console.log(`Danh mục: ${Object.keys(categories).length}`);
   for (const [slug, c] of Object.entries(categories)) {
+    const notes: string[] = [];
+    c.content = downgradeBrandCategoryLinks(c.content, paths, notes);
+    if (notes.length) console.log(`  ! ${slug}: đổi link hãng×danh mục không còn đủ sản phẩm: ${notes.join(", ")}`);
     const issues = validateHubContent({ seoTitle: c.seoTitle, seoDesc: c.seoDesc, html: c.content, texts: [c.intro, ...(c.faq ?? []).flatMap((f) => [f.question, f.answer])] }, { knownPaths: paths });
     report(slug, issues);
     const exists = await prisma.category.findUnique({ where: { slug }, select: { id: true } });
@@ -104,6 +120,7 @@ async function main() {
 
   console.log(`Thương hiệu: ${Object.keys(brands).length}`);
   for (const [slug, b] of Object.entries(brands)) {
+    b.content = downgradeBrandCategoryLinks(b.content, paths, []);
     const issues = validateHubContent({ seoTitle: b.seoTitle, seoDesc: b.seoDesc, html: b.content, texts: [b.description] }, { knownPaths: paths });
     report(slug, issues);
     const exists = await prisma.brand.findUnique({ where: { slug }, select: { id: true } });
@@ -122,6 +139,9 @@ async function main() {
     ? null
     : await prisma.category.upsert({ where: { slug: "kien-thuc" }, update: {}, create: { name: "Kiến thức", slug: "kien-thuc", type: "POST" } });
   for (const post of postFiles) {
+    const notes: string[] = [];
+    post.body = downgradeBrandCategoryLinks(post.body, paths, notes) ?? "";
+    if (notes.length) console.log(`  ! ${post.slug}: đổi link: ${notes.join(", ")}`);
     const issues = validateHubContent({ seoTitle: post.seoTitle, seoDesc: post.seoDesc, html: post.body, texts: [post.title, post.excerpt] }, { knownPaths: paths });
     if (!post.title || !post.slug) issues.push({ level: "error", code: "frontmatter", message: "Thiếu title/slug." });
     report(post.slug, issues);
