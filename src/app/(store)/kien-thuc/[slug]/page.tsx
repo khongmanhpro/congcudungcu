@@ -122,7 +122,7 @@ export default async function PostDetailPage({ params }: { params: Promise<{ slu
             {post.excerpt && <p className="mt-3 text-base leading-7 text-[#334155]">{post.excerpt}</p>}
             {post.coverImage && (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={post.coverImage} alt={post.title} className="mt-4 aspect-[16/9] w-full rounded-md bg-white object-contain" />
+              <img src={post.coverImage} alt={post.title} className="mx-auto mt-4 max-h-72 w-auto max-w-full rounded-md bg-white object-contain" />
             )}
             <div className="rich-content mt-5 max-w-none" dangerouslySetInnerHTML={{ __html: contentHtml }} />
           </article>

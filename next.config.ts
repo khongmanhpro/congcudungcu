@@ -17,9 +17,10 @@ const nextConfig: NextConfig = {
     if (!uploadsFallbackOrigin) return [];
     return {
       beforeFiles: [],
-      afterFiles: [],
-      // fallback chỉ chạy khi không tìm thấy file tĩnh trong public/
-      fallback: [{ source: "/uploads/:path*", destination: `${uploadsFallbackOrigin}/uploads/:path*` }],
+      // afterFiles: chạy SAU khi tìm file tĩnh trong public/ (ảnh có sẵn thì dùng ảnh local)
+      // nhưng TRƯỚC route động — route bắt-tất-cả [...path] của danh mục sẽ chặn mất nếu dùng "fallback"
+      afterFiles: [{ source: "/uploads/:path*", destination: `${uploadsFallbackOrigin}/uploads/:path*` }],
+      fallback: [],
     };
   },
 };

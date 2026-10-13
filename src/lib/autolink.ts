@@ -4,6 +4,8 @@ import { categoryPath } from "@/lib/urls";
 
 export type LinkTerm = { term: string; path: string };
 
+const SAFE_SINGLE_WORDS = new Set(["kìm", "búa", "taro"]);
+
 /**
  * Cụm từ → đường dẫn danh mục, dùng để tự gắn link nội bộ trong bài viết.
  * Tên ghép ("Kìm điện & kìm tổng hợp") tách thành từng cụm; bỏ cụm chung chung ("… khác").
@@ -19,6 +21,8 @@ export const getCategoryLinkTerms = cache(async (): Promise<LinkTerm[]> => {
       const term = part.trim();
       if (term.length < 3 || /khác|chuyên dụng|tổng hợp$/i.test(term) && term.split(" ").length < 2) continue;
       if (/\bkhác\b/i.test(term)) continue;
+      // cụm 1 từ dễ nhầm nghĩa ("kéo" = động từ kéo, "dao", "đèn") — chỉ giữ vài từ an toàn
+      if (!term.includes(" ") && !SAFE_SINGLE_WORDS.has(term.toLowerCase())) continue;
       terms.push({ term, path });
     }
   }
