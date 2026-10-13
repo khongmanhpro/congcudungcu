@@ -1,51 +1,70 @@
 import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/prisma";
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+import { absoluteUrl } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 3600;
 
+const POLICY_PAGES = [
+  "chinh-sach-ban-hang",
+  "phuong-thuc-thanh-toan",
+  "chinh-sach-bao-mat",
+  "chinh-sach-doi-tra",
+  "chinh-sach-bao-hanh",
+  "van-chuyen",
+  "tro-thanh-dai-ly",
+];
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [products, posts, categories] = await Promise.all([
-    prisma.product.findMany({ where: { status: "PUBLISHED" }, select: { slug: true, updatedAt: true } }),
-    prisma.post.findMany({ where: { status: "PUBLISHED" }, select: { slug: true, updatedAt: true } }),
-    prisma.category.findMany({ where: { type: "PRODUCT" }, select: { slug: true, updatedAt: true } }),
+    prisma.product.findMany({
+      where: { status: "PUBLISHED" },
+      select: { slug: true, updatedAt: true, images: { select: { url: true }, orderBy: { position: "asc" }, take: 5 } },
+    }),
+    prisma.post.findMany({ where: { status: "PUBLISHED" }, select: { slug: true, updatedAt: true, coverImage: true } }),
+    // chỉ danh mục có sản phẩm (trực tiếp hoặc ở danh mục con) — tránh trang mỏng
+    prisma.category.findMany({
+      where: {
+        type: "PRODUCT",
+        OR: [
+          { products: { some: { status: "PUBLISHED" } } },
+          { children: { some: { products: { some: { status: "PUBLISHED" } } } } },
+          { children: { some: { children: { some: { products: { some: { status: "PUBLISHED" } } } } } } },
+        ],
+      },
+      select: { slug: true, updatedAt: true, imageUrl: true },
+    }),
   ]);
 
-  const now = new Date();
+  const latest = [...products, ...posts].reduce((max, item) => (item.updatedAt > max ? item.updatedAt : max), new Date(0));
+  const lastModified = latest.getTime() > 0 ? latest : new Date();
 
-  const entries: MetadataRoute.Sitemap = [
-    { url: `${SITE_URL}/`, lastModified: now, priority: 1.0, changeFrequency: "daily" },
-    { url: `${SITE_URL}/san-pham`, lastModified: now, priority: 0.9, changeFrequency: "daily" },
-    { url: `${SITE_URL}/tin-tuc`, lastModified: now, priority: 0.7, changeFrequency: "weekly" },
-    { url: `${SITE_URL}/lien-he`, lastModified: now, priority: 0.5, changeFrequency: "monthly" },
-  ];
-
-  for (const c of categories) {
-    entries.push({
-      url: `${SITE_URL}/danh-muc/${c.slug}`,
+  return [
+    { url: absoluteUrl("/"), lastModified, changeFrequency: "daily", priority: 1 },
+    { url: absoluteUrl("/san-pham"), lastModified, changeFrequency: "daily", priority: 0.9 },
+    { url: absoluteUrl("/tin-tuc"), lastModified, changeFrequency: "weekly", priority: 0.7 },
+    { url: absoluteUrl("/lien-he"), changeFrequency: "yearly", priority: 0.5 },
+    ...POLICY_PAGES.map((slug) => ({ url: absoluteUrl(`/${slug}`), changeFrequency: "yearly" as const, priority: 0.3 })),
+    ...categories.map((c) => ({
+      url: absoluteUrl(`/danh-muc/${c.slug}`),
       lastModified: c.updatedAt,
-      priority: 0.7,
-      changeFrequency: "weekly",
-    });
-  }
-  for (const p of products) {
-    entries.push({
-      url: `${SITE_URL}/san-pham/${p.slug}`,
-      lastModified: p.updatedAt,
+      changeFrequency: "weekly" as const,
       priority: 0.8,
-      changeFrequency: "weekly",
-    });
-  }
-  for (const p of posts) {
-    entries.push({
-      url: `${SITE_URL}/tin-tuc/${p.slug}`,
+      images: c.imageUrl ? [absoluteUrl(c.imageUrl)] : undefined,
+    })),
+    ...products.map((p) => ({
+      url: absoluteUrl(`/san-pham/${p.slug}`),
       lastModified: p.updatedAt,
+      changeFrequency: "weekly" as const,
+      priority: 0.8,
+      images: p.images.length ? p.images.map((img) => absoluteUrl(img.url)) : undefined,
+    })),
+    ...posts.map((p) => ({
+      url: absoluteUrl(`/tin-tuc/${p.slug}`),
+      lastModified: p.updatedAt,
+      changeFrequency: "monthly" as const,
       priority: 0.6,
-      changeFrequency: "monthly",
-    });
-  }
-
-  return entries;
+      images: p.coverImage ? [absoluteUrl(p.coverImage)] : undefined,
+    })),
+  ];
 }

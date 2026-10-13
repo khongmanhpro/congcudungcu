@@ -1,17 +1,20 @@
 import type { MetadataRoute } from "next";
+import { getSiteUrl } from "@/lib/seo";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+// Đọc SITE_URL lúc chạy, không chèn cứng lúc build
+export const dynamic = "force-dynamic";
 
 export default function robots(): MetadataRoute.Robots {
+  const siteUrl = getSiteUrl();
   return {
     rules: [
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/admin", "/api", "/thanh-toan", "/tai-khoan"],
+        disallow: ["/admin", "/api", "/thanh-toan", "/tai-khoan", "/gio-hang", "/login"],
       },
     ],
-    sitemap: `${SITE_URL}/sitemap.xml`,
-    host: SITE_URL,
+    sitemap: `${siteUrl}/sitemap.xml`,
+    host: siteUrl,
   };
 }

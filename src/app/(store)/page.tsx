@@ -6,10 +6,24 @@ import { ProductCard, type ProductCardData } from "@/components/store/product-ca
 import { VideoShowcase, type ShowcaseVideo } from "@/components/store/video-showcase";
 import { getProductStats, type ProductStats } from "@/lib/product-stats";
 import { prisma } from "@/lib/prisma";
+import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, JsonLd, SITE_NAME, absoluteUrl, getSiteUrl } from "@/lib/seo";
+import type { Metadata } from "next";
 
 export const revalidate = 60;
 
 const PAGE_SIZE = 12; // 2 hàng × 6 sản phẩm
+
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSettings();
+  const title = settings.seo_title || DEFAULT_TITLE;
+  const description = settings.seo_description || DEFAULT_DESCRIPTION;
+  return {
+    title: { absolute: title },
+    description,
+    alternates: { canonical: "/" },
+    openGraph: { type: "website", url: "/", title, description, siteName: SITE_NAME, locale: "vi_VN" },
+  };
+}
 
 const productInclude = {
   images: { take: 1, orderBy: { position: "asc" as const } },
@@ -53,6 +67,7 @@ export default async function HomePage() {
     prisma.brand.findMany({ orderBy: { name: "asc" }, take: 24 }).catch(() => []),
   ]);
 
+  const siteUrl = getSiteUrl();
   const highlight = featured.length > 0 ? featured : newest;
   const sale = onSale.filter((p) => p.salePrice! < p.price);
   const stats = await getProductStats([...new Set([...highlight, ...sale, ...newest].map((p) => p.id))]);
@@ -84,7 +99,37 @@ export default async function HomePage() {
 
   return (
     <div className="bg-[#f5f6f8] pb-6 text-[#0f172a]">
+      <JsonLd
+        data={[
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "@id": `${siteUrl}/#organization`,
+            name: settings.company_name || SITE_NAME,
+            url: siteUrl,
+            email: settings.contact_email || undefined,
+            telephone: settings.contact_hotline || undefined,
+            address: settings.contact_address ? { "@type": "PostalAddress", streetAddress: settings.contact_address, addressCountry: "VN" } : undefined,
+            sameAs: [settings.social_facebook, settings.social_youtube].filter(Boolean),
+          },
+          {
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            "@id": `${siteUrl}/#website`,
+            name: SITE_NAME,
+            url: siteUrl,
+            inLanguage: "vi-VN",
+            publisher: { "@id": `${siteUrl}/#organization` },
+            potentialAction: {
+              "@type": "SearchAction",
+              target: { "@type": "EntryPoint", urlTemplate: absoluteUrl("/tim-kiem?q={search_term_string}") },
+              "query-input": "required name=search_term_string",
+            },
+          },
+        ]}
+      />
       <div className="mx-auto max-w-7xl space-y-4 px-3 pt-3 sm:px-4">
+        <h1 className="sr-only">{settings.seo_title || DEFAULT_TITLE}</h1>
         <BannerSlider slides={banners} />
 
         {chips.length > 0 && (

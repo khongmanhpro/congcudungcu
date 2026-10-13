@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { pagedPath } from "@/lib/seo";
+import type { Metadata } from "next";
 import { formatDate, formatNumber } from "@/lib/format";
 import { NewsletterForm } from "@/components/store/newsletter-form";
 import {
@@ -97,6 +99,22 @@ function pageHref(page: number, sort: string, topic?: string) {
   if (topic) params.set("topic", topic);
   const query = params.toString();
   return query ? `/tin-tuc?${query}` : "/tin-tuc";
+}
+
+export async function generateMetadata({ searchParams }: { searchParams: Promise<BlogSearchParams> }): Promise<Metadata> {
+  const params = await searchParams;
+  const page = Math.max(1, Number(params.page || "1") || 1);
+  const filtered = !!(params.topic || params.sort === "oldest");
+  const title = `Thư viện Media – Tin tức, hướng dẫn & kinh nghiệm dụng cụ${page > 1 ? ` – Trang ${page}` : ""}`;
+  const description = "Tin tức, hướng dẫn sử dụng, kinh nghiệm chọn mua và chia sẻ kỹ thuật về dụng cụ cầm tay, máy móc và thiết bị công nghiệp từ congcudungcu.vn.";
+  const path = filtered ? "/tin-tuc" : pagedPath("/tin-tuc", page);
+  return {
+    title,
+    description,
+    alternates: { canonical: path },
+    robots: filtered ? { index: false, follow: true } : undefined,
+    openGraph: { type: "website", url: path, title, description, locale: "vi_VN" },
+  };
 }
 
 export default async function BlogPage({ searchParams }: { searchParams: Promise<BlogSearchParams> }) {

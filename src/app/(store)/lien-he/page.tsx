@@ -2,8 +2,16 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { Clock, Headphones, Phone, Mail, MapPin } from "lucide-react";
 import { ContactForm } from "./contact-form";
+import type { Metadata } from "next";
 
 export const revalidate = 3600;
+
+export const metadata: Metadata = {
+  title: "Liên hệ & yêu cầu báo giá",
+  description: "Liên hệ congcudungcu.vn để được tư vấn chọn dụng cụ, thiết bị công nghiệp và nhận báo giá nhanh trong ngày. Hotline, Zalo, email hỗ trợ toàn quốc.",
+  alternates: { canonical: "/lien-he" },
+  openGraph: { type: "website", url: "/lien-he", title: "Liên hệ & yêu cầu báo giá", locale: "vi_VN" },
+};
 
 const DEFAULT_ADDRESS = "T2/D3B/31, Đường Bình Chuẩn 62, Khu phố Bình Thuận 2, Phường Thuận Giao, Thành phố Hồ Chí Minh";
 const DEFAULT_PHONE = "0978.39.03.39";

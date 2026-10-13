@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { ProductCard } from "@/components/store/product-card";
 import { getProductStats } from "@/lib/product-stats";
+import { JsonLd, absoluteUrl, breadcrumbJsonLd, getSiteUrl, toMetaDescription } from "@/lib/seo";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { formatVND } from "@/lib/format";
@@ -40,12 +42,6 @@ type ProductDetail = {
   brand: { name: string } | null;
 };
 
-function cleanText(value: string | null | undefined) {
-  return value
-    ? value.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim()
-    : undefined;
-}
-
 function normalizeProductHtml(html: string) {
   return html
     .replace(/https?:\/\/[^"'\s]+\/wp-content\/uploads\//g, "/uploads/")
@@ -68,13 +64,31 @@ async function getProduct(slug: string): Promise<ProductDetail | null> {
   }
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+/** Mô tả meta: ưu tiên mô tả ngắn → mô tả dài → câu tự sinh từ tên/thương hiệu/mã. */
+function productDescription(product: ProductDetail) {
+  return (
+    toMetaDescription(product.shortDesc) ||
+    toMetaDescription(product.description) ||
+    toMetaDescription(
+      `Mua ${product.name}${product.brand ? ` chính hãng ${product.brand.name}` : " chính hãng"}${product.sku ? `, mã ${product.sku}` : ""}. Giá tốt, có hóa đơn VAT, giao hàng toàn quốc tại congcudungcu.vn.`,
+    )
+  );
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const product = await getProduct(slug);
-  if (!product) return { title: "Không tìm thấy sản phẩm" };
+  if (!product || product.status !== "PUBLISHED") return { title: "Không tìm thấy sản phẩm", robots: { index: false, follow: true } };
+  const description = productDescription(product);
+  const path = `/san-pham/${product.slug}`;
+  const images = product.images.slice(0, 4).map((image) => ({ url: absoluteUrl(image.url), alt: image.alt || product.name }));
   return {
-    title: product.name,
-    description: cleanText(product.shortDesc),
+    // Tên dài (>55 ký tự) thì bỏ hậu tố "| congcudungcu.vn" để Google không cắt mất phần tên quan trọng
+    title: product.name.length > 55 ? { absolute: product.name } : product.name,
+    description,
+    alternates: { canonical: path },
+    openGraph: { type: "website", url: path, title: product.name, description, images, locale: "vi_VN" },
+    twitter: { card: "summary_large_image", title: product.name, description, images: images.map((image) => image.url) },
   };
 }
 
@@ -94,22 +108,46 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     include: { images: { take: 1, orderBy: { position: "asc" } }, brand: { select: { name: true } } },
   }).catch(() => []);
 
-  const stats = await getProductStats(related.map((p) => p.id));
+  const stats = await getProductStats([product.id, ...related.map((p) => p.id)]);
+  const own = stats.get(product.id);
+  const productUrl = absoluteUrl(`/san-pham/${product.slug}`);
+  const offerPrice = product.salePrice && product.salePrice > 0 ? product.salePrice : product.price;
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
+    "@id": `${productUrl}#product`,
     name: product.name,
-    description: product.shortDesc || undefined,
+    url: productUrl,
+    description: productDescription(product),
     sku: product.sku || undefined,
+    mpn: product.sku || undefined,
     brand: product.brand ? { "@type": "Brand", name: product.brand.name } : undefined,
-    image: product.images.map((i) => i.url),
-    offers: {
-      "@type": "Offer",
-      price: product.salePrice && product.salePrice > 0 ? product.salePrice : product.price,
-      priceCurrency: "VND",
-      availability: product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-    },
+    category: product.category?.name,
+    image: product.images.map((i) => absoluteUrl(i.url)),
+    // Sản phẩm "Liên hệ" (giá 0) không khai báo Offer để Google không hiển thị "0 ₫"
+    offers:
+      offerPrice > 0
+        ? {
+            "@type": "Offer",
+            url: productUrl,
+            price: offerPrice,
+            priceCurrency: "VND",
+            itemCondition: "https://schema.org/NewCondition",
+            availability: product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+            seller: { "@id": `${getSiteUrl()}/#organization` },
+          }
+        : undefined,
+    aggregateRating:
+      own && own.reviewCount > 0
+        ? { "@type": "AggregateRating", ratingValue: own.rating, reviewCount: own.reviewCount, bestRating: 5, worstRating: 1 }
+        : undefined,
   };
+  const breadcrumb = breadcrumbJsonLd([
+    { name: "Trang chủ", path: "/" },
+    { name: "Sản phẩm", path: "/san-pham" },
+    ...(product.category ? [{ name: product.category.name, path: `/danh-muc/${product.category.slug}` }] : []),
+    { name: product.name, path: `/san-pham/${product.slug}` },
+  ]);
   const displayPrice = product.salePrice && product.salePrice > 0 ? product.salePrice : product.price;
   const hasPrice = displayPrice > 0;
   const discount = product.salePrice && product.salePrice > 0 && product.price > product.salePrice
@@ -122,7 +160,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
   return (
     <div className="bg-[#f4f7fb] text-[#172033]">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <JsonLd data={[jsonLd, breadcrumb]} />
 
       <div className="mx-auto max-w-7xl px-3 py-5 sm:px-4 sm:py-6">
         <nav className="mb-4 flex flex-nowrap items-center gap-2 overflow-x-auto whitespace-nowrap text-xs text-[#667085] sm:mb-5 sm:flex-wrap sm:text-sm">
@@ -136,7 +174,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             </>
           )}
           <ChevronRight className="h-4 w-4" />
-          <span className="text-[#172033]">Chi tiết sản phẩm</span>
+          <span className="truncate text-[#172033]">{product.name}</span>
         </nav>
 
         <section className="grid gap-4 lg:grid-cols-[1.02fr_1.15fr] lg:gap-6">
@@ -152,12 +190,11 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                 <h1 className="text-xl font-bold leading-snug text-[#172033] md:text-2xl">{product.name}</h1>
 
                 <div className="mt-3 flex flex-wrap items-center gap-4 text-sm">
-                  <span className="flex items-center gap-1 text-[#ffae00]">
-                    {Array.from({ length: 5 }).map((_, index) => (
-                      <Star key={index} className="h-4 w-4 fill-current" />
-                    ))}
+                  <span className="flex items-center gap-1 text-[#475569]">
+                    <Star className="h-4 w-4 fill-gold text-gold" />
+                    {own && own.reviewCount > 0 ? `${own.rating} (${own.reviewCount} đánh giá)` : "Chưa có đánh giá"}
                   </span>
-                  <span className="text-[#667085]">Đánh giá sản phẩm</span>
+                  <span className="text-[#475569]">Đã bán {own?.sold ?? 0}</span>
                   {product.sku && <span className="text-[#667085]">SKU: <strong className="text-[#344054]">{product.sku}</strong></span>}
                 </div>
 

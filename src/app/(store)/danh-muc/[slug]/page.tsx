@@ -5,10 +5,65 @@ import { prisma } from "@/lib/prisma";
 import { getCategorySubtreeIds } from "@/lib/categories";
 import { ProductCard } from "@/components/store/product-card";
 import { getProductStats } from "@/lib/product-stats";
+import { JsonLd, absoluteUrl, breadcrumbJsonLd, pagedPath, toMetaDescription } from "@/lib/seo";
+import type { Metadata } from "next";
+import { cache } from "react";
 
 export const revalidate = 60;
 
 const PAGE_SIZE = 24;
+
+// Dùng chung giữa generateMetadata và trang (React cache → 1 truy vấn / request)
+const getCategory = cache(async (slug: string) =>
+  prisma.category.findUnique({
+    where: { slug },
+    include: {
+      parent: { select: { name: true, slug: true, parent: { select: { name: true, slug: true } } } },
+      children: { orderBy: { name: "asc" }, select: { id: true, name: true, slug: true, imageUrl: true } },
+    },
+  }),
+);
+
+const countProducts = cache(async (categoryId: string) =>
+  prisma.product.count({ where: { status: "PUBLISHED", categoryId: { in: await getCategorySubtreeIds(categoryId) } } }),
+);
+
+export async function generateMetadata({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ page?: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const page = Math.max(1, Number((await searchParams).page || "1") || 1);
+  const category = await getCategory(slug);
+  if (!category || category.type !== "PRODUCT") return { title: "Không tìm thấy danh mục", robots: { index: false, follow: true } };
+
+  const total = await countProducts(category.id);
+  const title = `${category.name} chính hãng, giá tốt${page > 1 ? ` – Trang ${page}` : ""}`;
+  const description =
+    toMetaDescription(category.description) ||
+    toMetaDescription(
+      `Mua ${category.name.toLowerCase()} chính hãng tại congcudungcu.vn: ${total} sản phẩm${category.children.length ? ` gồm ${category.children.slice(0, 4).map((c) => c.name.toLowerCase()).join(", ")}` : ""}. Báo giá nhanh, hóa đơn VAT, giao hàng toàn quốc.`,
+    );
+  const path = pagedPath(`/danh-muc/${category.slug}`, page);
+  return {
+    title,
+    description,
+    alternates: { canonical: path },
+    // danh mục chưa có sản phẩm: không index (trang mỏng) nhưng vẫn cho đi theo link
+    robots: total === 0 ? { index: false, follow: true } : undefined,
+    openGraph: {
+      type: "website",
+      url: path,
+      title,
+      description,
+      locale: "vi_VN",
+      images: category.imageUrl ? [{ url: absoluteUrl(category.imageUrl), alt: category.name }] : undefined,
+    },
+  };
+}
 
 export default async function CategoryPage({
   params,
@@ -19,13 +74,7 @@ export default async function CategoryPage({
 }) {
   const { slug } = await params;
   const page = Math.max(1, Number((await searchParams).page || "1") || 1);
-  const category = await prisma.category.findUnique({
-    where: { slug },
-    include: {
-      parent: { select: { name: true, slug: true, parent: { select: { name: true, slug: true } } } },
-      children: { orderBy: { name: "asc" }, select: { id: true, name: true, slug: true, imageUrl: true } },
-    },
-  });
+  const category = await getCategory(slug);
 
   if (!category || category.type !== "PRODUCT") notFound();
 
@@ -43,10 +92,29 @@ export default async function CategoryPage({
   ]);
   const stats = await getProductStats(products.map((p) => p.id));
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  if (page > totalPages) notFound();
   const ancestors = [category.parent?.parent, category.parent].filter((c): c is { name: string; slug: string } => !!c);
+  const breadcrumb = breadcrumbJsonLd([
+    { name: "Trang chủ", path: "/" },
+    ...ancestors.map((a) => ({ name: a.name, path: `/danh-muc/${a.slug}` })),
+    { name: category.name, path: `/danh-muc/${category.slug}` },
+  ]);
+  const itemList = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: category.name,
+    numberOfItems: total,
+    itemListElement: products.map((product, index) => ({
+      "@type": "ListItem",
+      position: (page - 1) * PAGE_SIZE + index + 1,
+      url: absoluteUrl(`/san-pham/${product.slug}`),
+      name: product.name,
+    })),
+  };
 
   return (
     <div className="bg-[#f5f6f8] pb-8">
+      <JsonLd data={[breadcrumb, itemList]} />
       <div className="mx-auto max-w-7xl space-y-4 px-3 pt-3 sm:px-4">
         <nav className="flex flex-wrap items-center gap-1.5 text-[13px] text-[#475569]">
           <Link href="/" className="hover:text-brand">Trang chủ</Link>

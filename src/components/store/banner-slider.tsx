@@ -42,7 +42,7 @@ export function BannerSlider({ slides }: { slides: BannerSlide[] }) {
             </div>
           )}
           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/25 to-transparent px-5 pb-8 pt-16 sm:px-6">
-            <h2 className="text-2xl font-black text-white drop-shadow sm:text-4xl">{slide.title}</h2>
+            <p className="text-2xl font-black text-white drop-shadow sm:text-4xl">{slide.title}</p>
             {slide.subtitle && <p className="mt-1 text-sm font-medium text-white/90 sm:text-lg">{slide.subtitle}</p>}
           </div>
           {slide.href && (

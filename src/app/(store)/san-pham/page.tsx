@@ -14,15 +14,37 @@ import { buildStandardProductCategories } from "@/components/store/catalog-categ
 import { ProductCard } from "@/components/store/product-card";
 import { getProductStats } from "@/lib/product-stats";
 import { getCategorySubtreeIds } from "@/lib/categories";
+import { pagedPath } from "@/lib/seo";
+import type { Metadata } from "next";
 import { ProductFilters } from "./product-filters";
 import { ProductSortSelect } from "./product-sort-select";
 
 export const revalidate = 60;
 
+type ListingParams = { page?: string; sort?: string; category?: string; brand?: string; minPrice?: string; maxPrice?: string; availability?: string };
+
+export async function generateMetadata({ searchParams }: { searchParams: Promise<ListingParams> }): Promise<Metadata> {
+  const sp = await searchParams;
+  const page = Math.max(1, Number(sp.page || "1") || 1);
+  // Trang lọc/sắp xếp: nội dung trùng với danh mục → không index, canonical về danh sách gốc
+  const filtered = !!(sp.category || sp.brand || sp.minPrice || sp.maxPrice || sp.availability || (sp.sort && sp.sort !== "newest"));
+  const title = `Tất cả sản phẩm dụng cụ & thiết bị công nghiệp${page > 1 ? ` – Trang ${page}` : ""}`;
+  const description =
+    "Danh sách dụng cụ cầm tay, dụng cụ điện, khí nén, thiết bị đo lường, thiết bị garage chính hãng tại congcudungcu.vn. Giá tốt, hóa đơn VAT, giao hàng toàn quốc.";
+  const path = filtered ? "/san-pham" : pagedPath("/san-pham", page);
+  return {
+    title,
+    description,
+    alternates: { canonical: path },
+    robots: filtered ? { index: false, follow: true } : undefined,
+    openGraph: { type: "website", url: path, title, description, locale: "vi_VN" },
+  };
+}
+
 export default async function ProductsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; sort?: string; category?: string; brand?: string; minPrice?: string; maxPrice?: string; availability?: string }>;
+  searchParams: Promise<ListingParams>;
 }) {
   const sp = await searchParams;
   const page = Math.max(1, Number(sp.page || "1"));

@@ -2,16 +2,33 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { formatDate } from "@/lib/format";
+import { JsonLd, SITE_NAME, absoluteUrl, breadcrumbJsonLd, getSiteUrl, toMetaDescription } from "@/lib/seo";
+import type { Metadata } from "next";
 
 export const revalidate = 60;
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const post = await prisma.post.findUnique({ where: { slug } });
-  if (!post) return { title: "Không tìm thấy bài viết" };
+  if (!post || post.status !== "PUBLISHED") return { title: "Không tìm thấy bài viết", robots: { index: false, follow: true } };
+  const title = post.seoTitle || post.title;
+  const description = toMetaDescription(post.seoDesc) || toMetaDescription(post.excerpt) || toMetaDescription(post.content);
+  const path = `/tin-tuc/${post.slug}`;
   return {
-    title: post.seoTitle || post.title,
-    description: post.seoDesc || post.excerpt || undefined,
+    title,
+    description,
+    alternates: { canonical: path },
+    openGraph: {
+      type: "article",
+      url: path,
+      title,
+      description,
+      locale: "vi_VN",
+      publishedTime: post.publishedAt?.toISOString(),
+      modifiedTime: post.updatedAt.toISOString(),
+      images: post.coverImage ? [{ url: absoluteUrl(post.coverImage), alt: post.title }] : undefined,
+    },
+    twitter: { card: "summary_large_image", title, description, images: post.coverImage ? [absoluteUrl(post.coverImage)] : undefined },
   };
 }
 
@@ -29,19 +46,31 @@ export default async function PostDetailPage({ params }: { params: Promise<{ slu
     take: 3,
   });
 
+  const postUrl = absoluteUrl(`/tin-tuc/${post.slug}`);
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "Article",
-    headline: post.title,
-    description: post.excerpt || undefined,
-    image: post.coverImage || undefined,
+    "@type": "BlogPosting",
+    "@id": `${postUrl}#article`,
+    mainEntityOfPage: postUrl,
+    headline: post.title.slice(0, 110),
+    description: toMetaDescription(post.seoDesc) || toMetaDescription(post.excerpt) || toMetaDescription(post.content),
+    image: post.coverImage ? [absoluteUrl(post.coverImage)] : undefined,
     datePublished: post.publishedAt?.toISOString(),
-    author: post.author ? { "@type": "Person", name: post.author.name || post.author.email } : undefined,
+    dateModified: post.updatedAt.toISOString(),
+    inLanguage: "vi-VN",
+    // không lộ email tác giả ra ngoài
+    author: post.author?.name ? { "@type": "Person", name: post.author.name } : { "@type": "Organization", name: SITE_NAME },
+    publisher: { "@type": "Organization", "@id": `${getSiteUrl()}/#organization`, name: SITE_NAME },
   };
+  const breadcrumb = breadcrumbJsonLd([
+    { name: "Trang chủ", path: "/" },
+    { name: "Tin tức", path: "/tin-tuc" },
+    { name: post.title, path: `/tin-tuc/${post.slug}` },
+  ]);
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-6">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <JsonLd data={[jsonLd, breadcrumb]} />
 
       <nav className="mb-4 text-sm text-muted-foreground">
         <Link href="/" className="hover:text-primary">Trang chủ</Link> / <Link href="/tin-tuc" className="hover:text-primary">Tin tức</Link> / <span>{post.title}</span>
@@ -51,7 +80,7 @@ export default async function PostDetailPage({ params }: { params: Promise<{ slu
         <div className="mb-3 flex items-center gap-2 text-xs text-muted-foreground">
           {post.category && <Link href={`/tin-tuc?cat=${post.category.slug}`} className="rounded bg-neutral-100 px-2 py-0.5 hover:bg-neutral-200">{post.category.name}</Link>}
           {post.publishedAt && <span>{formatDate(post.publishedAt)}</span>}
-          {post.author && <span>· {post.author.name || post.author.email}</span>}
+          {post.author?.name && <span>· {post.author.name}</span>}
         </div>
 
         <h1 className="mb-4 text-3xl font-bold">{post.title}</h1>
