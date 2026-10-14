@@ -107,8 +107,10 @@ model Product {
   name        String
   slug        String        @unique
   sku         String?       @unique
-  price       Int           // VND, nguyên
+  price       Int           // VND, nguyên — 0 = "Liên hệ" (giá bị khoá do chính sách đại lý/MAP)
   salePrice   Int?
+  priceMin    Int?          // khoảng giá tham khảo khi price=0 (khảo sát thị trường, không phải giá chốt)
+  priceMax    Int?
   stock       Int           @default(0)
   shortDesc   String?
   description String        // HTML từ Tiptap

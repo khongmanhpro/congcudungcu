@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { formatVND } from "@/lib/format";
+import { formatVND, formatVNDRange } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, CheckCircle2, Plus, Package, SearchCheck } from "lucide-react";
@@ -139,7 +139,13 @@ export default async function AdminProductsPage({
                 </td>
                 <td className="p-3 text-sm">{p.sku || "—"}</td>
                 <td className="p-3 text-sm">
-                  <div className="font-black text-[#172033]">{formatVND(p.salePrice ?? p.price)}</div>
+                  {p.price > 0 ? (
+                    <div className="font-black text-[#172033]">{formatVND(p.salePrice ?? p.price)}</div>
+                  ) : p.priceMin && p.priceMax ? (
+                    <div className="font-black text-[#172033]">{formatVNDRange(p.priceMin, p.priceMax)}</div>
+                  ) : (
+                    <div className="font-black text-[#ef233c]">Liên hệ (chưa có giá)</div>
+                  )}
                   <div className={`text-xs font-bold ${p.stock <= 5 ? "text-[#ef233c]" : "text-[#667085]"}`}>Kho: {p.stock}</div>
                 </td>
                 <td className="p-3">

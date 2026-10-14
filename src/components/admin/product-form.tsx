@@ -23,6 +23,8 @@ interface ProductData {
   sku: string | null;
   price: number;
   salePrice: number | null;
+  priceMin?: number | null;
+  priceMax?: number | null;
   stock: number;
   shortDesc: string | null;
   description: string;
@@ -65,6 +67,8 @@ export function ProductForm({
   const [sku, setSku] = useState(product?.sku || "");
   const [price, setPrice] = useState(String(product?.price ?? ""));
   const [salePrice, setSalePrice] = useState(String(product?.salePrice ?? ""));
+  const [priceMin, setPriceMin] = useState(String(product?.priceMin ?? ""));
+  const [priceMax, setPriceMax] = useState(String(product?.priceMax ?? ""));
   const [stock, setStock] = useState(String(product?.stock ?? "0"));
   const [shortDesc, setShortDesc] = useState(product?.shortDesc || "");
   const [description, setDescription] = useState(product?.description || "");
@@ -126,6 +130,8 @@ export function ProductForm({
       sku: sku || null,
       price: Number(price) || 0,
       salePrice: salePrice ? Number(salePrice) : null,
+      priceMin: priceMin ? Number(priceMin) : null,
+      priceMax: priceMax ? Number(priceMax) : null,
       stock: Number(stock) || 0,
       shortDesc: shortDesc || null,
       description,
@@ -340,6 +346,22 @@ export function ProductForm({
             <div className="space-y-2">
               <Label htmlFor="salePrice">Giá khuyến mãi</Label>
               <Input id="salePrice" type="number" value={salePrice} onChange={(e) => setSalePrice(e.target.value)} />
+            </div>
+            <div className="space-y-2 rounded-md border border-dashed p-3">
+              <p className="text-xs text-muted-foreground">
+                Giá bị khoá (đại lý/MAP)? Để <strong>Giá (VND)</strong> = 0 và điền khoảng giá tham khảo dưới đây —
+                trang sản phẩm sẽ hiện khoảng giá kèm nút liên hệ thay vì &ldquo;Liên hệ&rdquo; trống.
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="priceMin">Giá thấp nhất</Label>
+                  <Input id="priceMin" type="number" value={priceMin} onChange={(e) => setPriceMin(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="priceMax">Giá cao nhất</Label>
+                  <Input id="priceMax" type="number" value={priceMax} onChange={(e) => setPriceMax(e.target.value)} />
+                </div>
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="stock">Tồn kho</Label>

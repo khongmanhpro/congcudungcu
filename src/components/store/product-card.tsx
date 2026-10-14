@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Star } from "lucide-react";
-import { formatVND } from "@/lib/format";
+import { formatVND, formatVNDRange } from "@/lib/format";
 import type { ProductStats } from "@/lib/product-stats";
 import { ProductCartButton, ProductWishlistButton } from "@/app/(store)/san-pham/product-card-actions";
 
@@ -11,6 +11,8 @@ export type ProductCardData = {
   sku?: string | null;
   price: number;
   salePrice: number | null;
+  priceMin?: number | null;
+  priceMax?: number | null;
   stock: number;
   images: { url: string; alt: string | null }[];
   brand?: { name: string } | null;
@@ -21,6 +23,7 @@ export type ProductCardData = {
 export function ProductCard({ product, stats }: { product: ProductCardData; stats?: ProductStats }) {
   const onSale = !!product.salePrice && product.salePrice > 0 && product.salePrice < product.price;
   const displayPrice = onSale ? product.salePrice! : product.price;
+  const hasRange = !displayPrice && !!product.priceMin && !!product.priceMax;
   const image = product.images[0];
   const href = `/san-pham/${product.slug}`;
   const inStock = product.stock > 0;
@@ -66,6 +69,11 @@ export function ProductCard({ product, stats }: { product: ProductCardData; stat
             <div className="text-sm font-bold text-price">{formatVND(displayPrice)}</div>
             {onSale && <div className="text-xs text-[#94a3b8] line-through">{formatVND(product.price)}</div>}
           </>
+        ) : hasRange ? (
+          <Link href={href} prefetch={false} className="block">
+            <div className="text-xs font-bold leading-tight text-price">{formatVNDRange(product.priceMin!, product.priceMax!)}</div>
+            <div className="text-[11px] text-[#94a3b8] hover:underline">Liên hệ để có giá tốt nhất</div>
+          </Link>
         ) : (
           <Link href="/lien-he" className="text-sm font-bold text-price hover:underline">Liên hệ</Link>
         )}

@@ -7,6 +7,11 @@ export function formatVND(value: number): string {
   }).format(value);
 }
 
+/** Khoảng giá tham khảo: (1290000, 1590000) -> "1.290.000₫ - 1.590.000₫" */
+export function formatVNDRange(min: number, max: number): string {
+  return `${formatVND(min)} - ${formatVND(max)}`;
+}
+
 /** Định dạng số: 1290000 -> "1.290.000" */
 export function formatNumber(value: number): string {
   return new Intl.NumberFormat("vi-VN").format(value);

@@ -12,7 +12,7 @@ import { JsonLd, absoluteUrl, breadcrumbJsonLd, getSiteUrl, toMetaDescription } 
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { formatVND } from "@/lib/format";
+import { formatVND, formatVNDRange } from "@/lib/format";
 import { AddToCartForm } from "./add-to-cart-form";
 import { WishlistButton } from "@/components/store/wishlist-button";
 import { CompareButton } from "@/components/store/compare-button";
@@ -46,6 +46,8 @@ type ProductDetail = {
   sku: string | null;
   price: number;
   salePrice: number | null;
+  priceMin: number | null;
+  priceMax: number | null;
   stock: number;
   shortDesc: string | null;
   description: string;
@@ -152,6 +154,27 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   const productUrl = absoluteUrl(`/san-pham/${product.slug}`);
   const specsForLd = readSpecs(product.specs).slice(0, 20);
   const offerPrice = product.salePrice && product.salePrice > 0 ? product.salePrice : product.price;
+  const hasPriceRange = offerPrice <= 0 && !!product.priceMin && !!product.priceMax;
+  // theo chính sách đang công bố: phí ship cố định (api/checkout), giao 2–5 ngày, đổi trả 7 ngày
+  const offerPolicyLd = {
+    shippingDetails: {
+      "@type": "OfferShippingDetails",
+      shippingRate: { "@type": "MonetaryAmount", value: SHIPPING_FEE, currency: "VND" },
+      shippingDestination: { "@type": "DefinedRegion", addressCountry: "VN" },
+      deliveryTime: {
+        "@type": "ShippingDeliveryTime",
+        handlingTime: { "@type": "QuantitativeValue", minValue: 0, maxValue: 1, unitCode: "DAY" },
+        transitTime: { "@type": "QuantitativeValue", minValue: 2, maxValue: 5, unitCode: "DAY" },
+      },
+    },
+    hasMerchantReturnPolicy: {
+      "@type": "MerchantReturnPolicy",
+      applicableCountry: "VN",
+      returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
+      merchantReturnDays: 7,
+      returnMethod: "https://schema.org/ReturnByMail",
+    },
+  };
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -169,7 +192,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     additionalProperty: specsForLd.length
       ? specsForLd.map((item) => ({ "@type": "PropertyValue", name: item.label, value: item.value }))
       : undefined,
-    // Sản phẩm "Liên hệ" (giá 0) không khai báo Offer để Google không hiển thị "0 ₫"
+    // Sản phẩm "Liên hệ" (giá 0, không có khoảng giá) không khai báo Offer để Google không hiển thị "0 ₫"
     offers:
       offerPrice > 0
         ? {
@@ -180,26 +203,22 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             itemCondition: "https://schema.org/NewCondition",
             availability: product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
             seller: { "@id": `${getSiteUrl()}/#organization` },
-            // theo chính sách đang công bố: phí ship cố định (api/checkout), giao 2–5 ngày, đổi trả 7 ngày
-            shippingDetails: {
-              "@type": "OfferShippingDetails",
-              shippingRate: { "@type": "MonetaryAmount", value: SHIPPING_FEE, currency: "VND" },
-              shippingDestination: { "@type": "DefinedRegion", addressCountry: "VN" },
-              deliveryTime: {
-                "@type": "ShippingDeliveryTime",
-                handlingTime: { "@type": "QuantitativeValue", minValue: 0, maxValue: 1, unitCode: "DAY" },
-                transitTime: { "@type": "QuantitativeValue", minValue: 2, maxValue: 5, unitCode: "DAY" },
-              },
-            },
-            hasMerchantReturnPolicy: {
-              "@type": "MerchantReturnPolicy",
-              applicableCountry: "VN",
-              returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
-              merchantReturnDays: 7,
-              returnMethod: "https://schema.org/ReturnByMail",
-            },
+            ...offerPolicyLd,
           }
-        : undefined,
+        : hasPriceRange
+          ? {
+              // Giá bị khoá do chính sách đại lý/MAP — chỉ công bố khoảng giá khảo sát, giá thật qua liên hệ
+              "@type": "AggregateOffer",
+              url: productUrl,
+              lowPrice: product.priceMin,
+              highPrice: product.priceMax,
+              priceCurrency: "VND",
+              offerCount: 1,
+              availability: product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+              seller: { "@id": `${getSiteUrl()}/#organization` },
+              ...offerPolicyLd,
+            }
+          : undefined,
     aggregateRating:
       own && own.reviewCount > 0
         ? { "@type": "AggregateRating", ratingValue: own.rating, reviewCount: own.reviewCount, bestRating: 5, worstRating: 1 }
@@ -290,7 +309,9 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
                 <div className="mt-6 border-t border-[#edf1f7] pt-5">
                   {product.salePrice && product.salePrice > 0 && <div className="text-sm text-[#667085] line-through">{formatVND(product.price)}</div>}
-                  <div className="mt-1 text-3xl font-black text-price sm:text-4xl">{hasPrice ? formatVND(displayPrice) : "Liên hệ"}</div>
+                  <div className={`mt-1 font-black text-price ${hasPrice ? "text-3xl sm:text-4xl" : hasPriceRange ? "text-xl sm:text-2xl" : "text-3xl sm:text-4xl"}`}>
+                    {hasPrice ? formatVND(displayPrice) : hasPriceRange ? formatVNDRange(product.priceMin!, product.priceMax!) : "Liên hệ"}
+                  </div>
                   <div className="mt-2 text-sm text-[#667085]">{hasPrice ? "Giá đã bao gồm VAT" : "Liên hệ để nhận báo giá tốt nhất"}</div>
                   {savings > 0 && (
                     <div className="mt-3 inline-flex rounded bg-[#fff1f1] px-3 py-1.5 text-sm font-semibold text-price">
