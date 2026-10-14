@@ -58,6 +58,42 @@ export function breadcrumbJsonLd(items: { name: string; path: string }[]) {
   };
 }
 
+/**
+ * Organization + WebSite — khai báo MỘT LẦN cho toàn site (gắn ở layout, không phải riêng từng
+ * trang) để công cụ phân tích SEO không báo thiếu "Organization/WebSite" ở trang danh mục,
+ * thương hiệu, bài viết… (trước đây chỉ có ở trang chủ nên các trang khác bị trừ điểm Schema).
+ */
+export function siteJsonLd(settings: Record<string, string>) {
+  const siteUrl = getSiteUrl();
+  return [
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "@id": `${siteUrl}/#organization`,
+      name: settings.company_name || SITE_NAME,
+      url: siteUrl,
+      email: settings.contact_email || undefined,
+      telephone: settings.contact_hotline || undefined,
+      address: settings.contact_address ? { "@type": "PostalAddress", streetAddress: settings.contact_address, addressCountry: "VN" } : undefined,
+      sameAs: [settings.social_facebook, settings.social_youtube].filter(Boolean),
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "@id": `${siteUrl}/#website`,
+      name: SITE_NAME,
+      url: siteUrl,
+      inLanguage: "vi-VN",
+      publisher: { "@id": `${siteUrl}/#organization` },
+      potentialAction: {
+        "@type": "SearchAction",
+        target: { "@type": "EntryPoint", urlTemplate: absoluteUrl("/tim-kiem?q={search_term_string}") },
+        "query-input": "required name=search_term_string",
+      },
+    },
+  ];
+}
+
 /** Thẻ <script type="application/ld+json"> an toàn (chặn "</script>" trong dữ liệu). */
 export function JsonLd({ data }: { data: object | object[] }) {
   const json = JSON.stringify(data).replace(/</g, "\\u003c");

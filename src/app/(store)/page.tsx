@@ -7,7 +7,7 @@ import { VideoShowcase, type ShowcaseVideo } from "@/components/store/video-show
 import { getProductStats, type ProductStats } from "@/lib/product-stats";
 import { prisma } from "@/lib/prisma";
 import { categoryPath } from "@/lib/urls";
-import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, JsonLd, SITE_NAME, absoluteUrl, getSiteUrl } from "@/lib/seo";
+import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, JsonLd, SITE_NAME, getSiteUrl } from "@/lib/seo";
 import { FaqSection, faqJsonLd, type FaqItem } from "@/components/store/faq-section";
 import type { Metadata } from "next";
 
@@ -116,31 +116,8 @@ export default async function HomePage() {
     <div className="bg-[#f5f6f8] pb-6 text-[#0f172a]">
       <JsonLd
         data={[
-          {
-            "@context": "https://schema.org",
-            "@type": "Organization",
-            "@id": `${siteUrl}/#organization`,
-            name: settings.company_name || SITE_NAME,
-            url: siteUrl,
-            email: settings.contact_email || undefined,
-            telephone: settings.contact_hotline || undefined,
-            address: settings.contact_address ? { "@type": "PostalAddress", streetAddress: settings.contact_address, addressCountry: "VN" } : undefined,
-            sameAs: [settings.social_facebook, settings.social_youtube].filter(Boolean),
-          },
-          {
-            "@context": "https://schema.org",
-            "@type": "WebSite",
-            "@id": `${siteUrl}/#website`,
-            name: SITE_NAME,
-            url: siteUrl,
-            inLanguage: "vi-VN",
-            publisher: { "@id": `${siteUrl}/#organization` },
-            potentialAction: {
-              "@type": "SearchAction",
-              target: { "@type": "EntryPoint", urlTemplate: absoluteUrl("/tim-kiem?q={search_term_string}") },
-              "query-input": "required name=search_term_string",
-            },
-          },
+          // Organization/WebSite giờ khai báo chung ở layout.tsx cho mọi trang — ở đây chỉ còn
+          // phần riêng của trang chủ (WebPage + FAQ).
           {
             "@context": "https://schema.org",
             "@type": "WebPage",

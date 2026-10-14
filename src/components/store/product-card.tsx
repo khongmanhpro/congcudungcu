@@ -43,8 +43,13 @@ export function ProductCard({ product, stats }: { product: ProductCardData; stat
       />
       <Link href={href} aria-label={image?.alt || product.name} className="relative block aspect-square overflow-hidden rounded bg-white">
         {image ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={image.url} alt={image.alt || product.name} loading="lazy" width={400} height={400} className="h-full w-full object-contain transition duration-300 group-hover:scale-105" />
+          // figcaption sr-only: tên hiển thị ngay bên dưới thẻ rồi, không cần lặp lại trên giao diện —
+          // chỉ để công cụ đọc ảnh có ngữ cảnh (không phải ảnh trang trí)
+          <figure className="h-full w-full">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={image.url} alt={image.alt || product.name} loading="lazy" width={400} height={400} className="h-full w-full object-contain transition duration-300 group-hover:scale-105" />
+            <figcaption className="sr-only">{image.alt || product.name}</figcaption>
+          </figure>
         ) : (
           <div className="flex h-full items-center justify-center bg-[#f5f6f8] text-xs text-[#98a2b3]">Chưa có ảnh</div>
         )}
