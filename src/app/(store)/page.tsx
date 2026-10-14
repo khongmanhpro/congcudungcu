@@ -155,13 +155,11 @@ export default async function HomePage() {
       />
       <div className="mx-auto max-w-7xl space-y-4 px-3 pt-3 sm:px-4">
         <h1 className="sr-only">{settings.seo_title || DEFAULT_TITLE}</h1>
-        <p className="text-sm leading-6 text-[#475569] sm:text-[15px]">
-          congcudungcu.vn là nhà phân phối dụng cụ cầm tay, dụng cụ điện, khí nén, máy hàn và thiết bị đo lường công nghiệp chính hãng
-          tại Việt Nam, gồm các thương hiệu KNIPEX, BOSCH, TOPTUL, WOKIN, MATADOR và nhiều hãng khác — có hóa đơn VAT, CO/CQ đầy đủ.
-          Giao hàng toàn quốc trong 2–5 ngày, báo giá nhanh cho doanh nghiệp, đại lý và nhà thầu.
-          <span className="mt-1 block text-xs text-[#94a3b8]">Cập nhật lần cuối: {lastUpdatedLabel}</span>
-        </p>
         <BannerSlider slides={banners} />
+        <p className="rounded-lg border border-gold bg-white px-4 py-2.5 text-center text-[13px] leading-5 text-[#475569] sm:text-sm">
+          congcudungcu.vn phân phối dụng cụ cầm tay, dụng cụ điện, khí nén, máy hàn và thiết bị đo lường chính hãng — KNIPEX, BOSCH, TOPTUL, WOKIN, MATADOR…
+          Có hóa đơn VAT, giao hàng toàn quốc, báo giá nhanh cho doanh nghiệp và đại lý.
+        </p>
 
         {chips.length > 0 && (
           <Card title="Danh mục nổi bật" meta={`${chips.length} danh mục`}>
@@ -236,6 +234,7 @@ export default async function HomePage() {
         )}
 
         <FaqSection items={HOME_FAQ} />
+        <p className="text-right text-xs text-[#94a3b8]">Cập nhật lần cuối: {lastUpdatedLabel}</p>
       </div>
     </div>
   );
