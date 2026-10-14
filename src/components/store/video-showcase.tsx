@@ -58,7 +58,7 @@ export function VideoShowcase({ videos, channelUrl, channelName }: { videos: Sho
             className={`flex w-full gap-3 rounded-md border p-1 text-left transition ${index === current ? "border-gold bg-gold/10" : "border-gold/50 hover:border-gold"}`}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={`https://i.ytimg.com/vi/${item.id}/mqdefault.jpg`} alt="" className="aspect-video w-32 shrink-0 rounded object-cover" />
+            <img src={`https://i.ytimg.com/vi/${item.id}/mqdefault.jpg`} alt={item.title} className="aspect-video w-32 shrink-0 rounded object-cover" />
             <span className="line-clamp-3 py-1 text-xs font-bold leading-4 text-[#0f172a]">{item.title}</span>
           </button>
         ))}
