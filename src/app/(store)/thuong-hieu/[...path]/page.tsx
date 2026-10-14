@@ -113,7 +113,7 @@ export default async function BrandPage({ params, searchParams }: Params) {
             mainEntity: {
               "@type": "ItemList",
               numberOfItems: total,
-              itemListElement: products.map((p, i) => ({ "@type": "ListItem", position: (page - 1) * PAGE_SIZE + i + 1, url: absoluteUrl(productPath(p.slug)), name: p.name })),
+              itemListElement: products.map((p, i) => ({ "@type": "ListItem", position: (page - 1) * PAGE_SIZE + i + 1, url: absoluteUrl(productPath(p.slug)), name: p.seoTitle || p.name })),
             },
           },
         ]}

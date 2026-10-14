@@ -178,7 +178,7 @@ async function CategoryView({ category, page }: { category: NonNullable<Awaited<
         "@type": "ListItem",
         position: (page - 1) * PAGE_SIZE + index + 1,
         url: absoluteUrl(productPath(product.slug)),
-        name: product.name,
+        name: product.seoTitle || product.name,
       })),
     },
   };

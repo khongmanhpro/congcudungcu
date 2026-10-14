@@ -135,6 +135,9 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
       : Promise.resolve([]),
   ]);
   const faq = parseFaq(product.faq);
+  // Tên hiển thị công khai (H1, JSON-LD, breadcrumb): ưu tiên seoTitle đã viết chuẩn AEO
+  // (ngắn gọn, có thương hiệu + mã ở đầu). Product.name gốc giữ nguyên cho giỏ hàng/đơn hàng/admin.
+  const displayName = product.seoTitle || product.name;
 
   const stats = await getProductStats([product.id, ...related.map((p) => p.id), ...sameBrand.map((p) => p.id)]);
   const own = stats.get(product.id);
@@ -145,7 +148,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     "@context": "https://schema.org",
     "@type": "Product",
     "@id": `${productUrl}#product`,
-    name: product.name,
+    name: displayName,
     url: productUrl,
     description: productDescription(product),
     sku: product.sku || product.model || undefined,
@@ -200,7 +203,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     { name: "Sản phẩm", path: "/san-pham" },
     ...(product.category?.parent ? [{ name: product.category.parent.name, path: categoryPath({ slug: product.category.parent.slug }) }] : []),
     ...(product.category ? [{ name: product.category.name, path: categoryPath(product.category) }] : []),
-    { name: product.name, path: `/san-pham/${product.slug}` },
+    { name: displayName, path: `/san-pham/${product.slug}` },
   ]);
   const displayPrice = product.salePrice && product.salePrice > 0 ? product.salePrice : product.price;
   const hasPrice = displayPrice > 0;
@@ -228,11 +231,11 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             </>
           )}
           <ChevronRight className="h-4 w-4" />
-          <span className="truncate text-[#172033]">{product.name}</span>
+          <span className="truncate text-[#172033]">{displayName}</span>
         </nav>
 
         <section className="grid gap-4 lg:grid-cols-[1.02fr_1.15fr] lg:gap-6">
-          <ProductGallery images={product.images} name={product.name} discount={discount} />
+          <ProductGallery images={product.images} name={displayName} discount={discount} />
 
           <div className="rounded-md border border-[#dce5f1] bg-white p-4 sm:p-5">
             <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_270px]">
@@ -244,7 +247,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                   {product.brand && <span className="text-sm text-[#667085]">Thương hiệu</span>}
                   {product.origin && <span className="text-sm text-[#667085]">· Xuất xứ: {product.origin}</span>}
                 </div>
-                <h1 className="text-xl font-bold leading-snug text-[#172033] md:text-2xl">{product.name}</h1>
+                <h1 className="text-xl font-bold leading-snug text-[#172033] md:text-2xl">{displayName}</h1>
 
                 <div className="mt-3 flex flex-wrap items-center gap-4 text-sm">
                   <span className="flex items-center gap-1 text-[#475569]">

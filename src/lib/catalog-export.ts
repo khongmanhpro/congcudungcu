@@ -15,7 +15,7 @@ export async function getCatalogForExport() {
       orderBy: [{ featured: "desc" }, { publishedAt: { sort: "desc", nulls: "last" } }, { id: "asc" }],
       select: {
         id: true, name: true, slug: true, sku: true, model: true, gtin: true, price: true, salePrice: true, stock: true,
-        shortDesc: true, seoDesc: true, description: true, categoryId: true, updatedAt: true,
+        shortDesc: true, seoTitle: true, seoDesc: true, description: true, categoryId: true, updatedAt: true,
         brand: { select: { name: true } },
         images: { orderBy: { position: "asc" }, take: 5, select: { url: true } },
       },
@@ -32,6 +32,11 @@ export const categoryUrl = (c: { slug: string; parent?: { slug: string } | null 
 
 export function effectivePrice(p: { price: number; salePrice: number | null }) {
   return p.salePrice && p.salePrice > 0 && p.salePrice < p.price ? p.salePrice : p.price;
+}
+
+/** Tên hiển thị cho AI/feed: ưu tiên seoTitle (ngắn gọn, thương hiệu + mã ở đầu) — khớp <h1>/JSON-LD trên trang sản phẩm. */
+export function productTitle(p: ExportProduct) {
+  return p.seoTitle || p.name;
 }
 
 export function productSummary(p: ExportProduct, max = 300) {

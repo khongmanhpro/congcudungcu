@@ -1,6 +1,6 @@
 import { formatVND } from "@/lib/format";
 import { SITE_NAME } from "@/lib/seo";
-import { categoryUrl, effectivePrice, getCatalogForExport, productUrl } from "@/lib/catalog-export";
+import { categoryUrl, effectivePrice, getCatalogForExport, productTitle, productUrl } from "@/lib/catalog-export";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 3600;
@@ -24,7 +24,7 @@ export async function GET() {
       const meta = [p.brand?.name, p.model ? `mã ${p.model}` : p.sku ? `mã ${p.sku}` : null, price > 0 ? formatVND(price) : "Liên hệ", p.stock > 0 ? null : "hết hàng"]
         .filter(Boolean)
         .join(" · ");
-      out.push(`- [${p.name}](${productUrl(p)}) — ${meta}`);
+      out.push(`- [${productTitle(p)}](${productUrl(p)}) — ${meta}`);
     }
     out.push("");
   }

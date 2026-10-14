@@ -1,5 +1,5 @@
 import { absoluteUrl } from "@/lib/seo";
-import { effectivePrice, getCatalogForExport, productSummary, productUrl } from "@/lib/catalog-export";
+import { effectivePrice, getCatalogForExport, productSummary, productTitle, productUrl } from "@/lib/catalog-export";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 3600;
@@ -25,8 +25,8 @@ export async function GET() {
       const mpn = p.model || p.sku;
       const fields = [
         ["g:id", p.sku || p.id],
-        ["g:title", p.name.slice(0, 150)],
-        ["g:description", (productSummary(p, 4900) || p.name).slice(0, 5000)],
+        ["g:title", productTitle(p).slice(0, 150)],
+        ["g:description", (productSummary(p, 4900) || productTitle(p)).slice(0, 5000)],
         ["g:link", productUrl(p)],
         ["g:image_link", absoluteUrl(p.images[0].url)],
         ...p.images.slice(1).map((img) => ["g:additional_image_link", absoluteUrl(img.url)]),
