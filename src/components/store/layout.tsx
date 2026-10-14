@@ -86,14 +86,11 @@ export async function StoreHeader() {
 
       {/* Logo + tìm kiếm + nút */}
       <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-4 gap-y-2 px-3 py-2.5 sm:px-4 md:flex-nowrap">
-        <div className="flex min-w-0 flex-1 items-center gap-1 md:w-[200px] md:flex-none">
+        <div className="flex min-w-0 flex-1 items-center gap-1 md:w-[260px] md:flex-none">
           <MobileCategoryDrawer categories={categories} />
-          <Link href="/" className="flex min-w-0 items-center gap-2">
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-brand text-lg font-black text-gold">C</span>
-            <span className="min-w-0 leading-tight">
-              <span className="block truncate text-[15px] font-black uppercase text-brand">Công Cụ Dụng Cụ</span>
-              <span className="block truncate text-[11px] font-medium text-[#475569]">congcudungcu.vn</span>
-            </span>
+          <Link href="/" className="flex min-w-0 items-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/brand/logo-header.png" alt="Công Cụ Dụng Cụ" width={1213} height={190} className="h-8 w-auto max-w-full object-contain sm:h-10" />
           </Link>
         </div>
 
