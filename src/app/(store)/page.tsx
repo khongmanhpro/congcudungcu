@@ -8,11 +8,22 @@ import { getProductStats, type ProductStats } from "@/lib/product-stats";
 import { prisma } from "@/lib/prisma";
 import { categoryPath } from "@/lib/urls";
 import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, JsonLd, SITE_NAME, absoluteUrl, getSiteUrl } from "@/lib/seo";
+import { FaqSection, faqJsonLd, type FaqItem } from "@/components/store/faq-section";
 import type { Metadata } from "next";
 
 export const revalidate = 60;
 
 const PAGE_SIZE = 12; // 2 hàng × 6 sản phẩm
+
+// Câu hỏi chung của khách khi vào trang chủ — dùng đúng số liệu đã công bố ở các trang chính sách
+// (/van-chuyen, /chinh-sach-doi-tra, /phuong-thuc-thanh-toan) để không mâu thuẫn thông tin giữa các trang.
+const HOME_FAQ: FaqItem[] = [
+  { question: "congcudungcu.vn có hóa đơn VAT và CO/CQ không?", answer: "Có. Sản phẩm chính hãng, đầy đủ CO/CQ và xuất hóa đơn VAT theo yêu cầu." },
+  { question: "Giao hàng mất bao lâu, phí ship bao nhiêu?", answer: "Giao hàng toàn quốc trong 2–5 ngày làm việc. Miễn phí giao hàng cho đơn từ 500.000đ; hỗ trợ giao hỏa tốc nội thành trong 2–4 giờ." },
+  { question: "Đổi trả hàng như thế nào?", answer: "Đổi trả trong vòng 7 ngày kể từ ngày nhận hàng nếu còn nguyên tem, hộp, phụ kiện. Hoàn tiền 100% nếu sản phẩm lỗi do nhà sản xuất." },
+  { question: "Thanh toán bằng cách nào?", answer: "Thanh toán khi nhận hàng (COD), qua VNPay hoặc chuyển khoản ngân hàng. Khách hàng doanh nghiệp có thể thanh toán theo hợp đồng." },
+  { question: "Có báo giá riêng cho doanh nghiệp, đại lý không?", answer: "Có. Vui lòng gửi yêu cầu qua trang Liên hệ hoặc gọi hotline để nhận báo giá theo số lượng." },
+];
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSettings();
@@ -127,10 +138,16 @@ export default async function HomePage() {
               "query-input": "required name=search_term_string",
             },
           },
+          faqJsonLd(HOME_FAQ),
         ]}
       />
       <div className="mx-auto max-w-7xl space-y-4 px-3 pt-3 sm:px-4">
         <h1 className="sr-only">{settings.seo_title || DEFAULT_TITLE}</h1>
+        <p className="text-sm leading-6 text-[#475569] sm:text-[15px]">
+          congcudungcu.vn là nhà phân phối dụng cụ cầm tay, dụng cụ điện, khí nén, máy hàn và thiết bị đo lường công nghiệp chính hãng
+          tại Việt Nam, gồm các thương hiệu KNIPEX, BOSCH, TOPTUL, WOKIN, MATADOR và nhiều hãng khác — có hóa đơn VAT, CO/CQ đầy đủ.
+          Giao hàng toàn quốc trong 2–5 ngày, báo giá nhanh cho doanh nghiệp, đại lý và nhà thầu.
+        </p>
         <BannerSlider slides={banners} />
 
         {chips.length > 0 && (
@@ -196,7 +213,7 @@ export default async function HomePage() {
               >
                 {brand.logoUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={brand.logoUrl} alt={brand.name} loading="lazy" className="max-h-9 max-w-full object-contain" />
+                  <img src={brand.logoUrl} alt={brand.name} loading="lazy" width={120} height={36} className="max-h-9 max-w-full object-contain" />
                 ) : (
                   <span className="line-clamp-2 text-xs font-bold uppercase text-[#334155]">{brand.name}</span>
                 )}
@@ -204,6 +221,8 @@ export default async function HomePage() {
             ))}
           </div>
         )}
+
+        <FaqSection items={HOME_FAQ} />
       </div>
     </div>
   );

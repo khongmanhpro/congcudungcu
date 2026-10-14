@@ -27,7 +27,7 @@ export function ProductGallery({ images, name, discount }: { images: GalleryImag
         ) : null}
         {image.url ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={image.url} alt={image.alt || name} className="h-full w-full object-contain p-5 sm:p-10" />
+          <img src={image.url} alt={image.alt || name} width={600} height={600} className="h-full w-full object-contain p-5 sm:p-10" />
         ) : (
           <div className="flex h-full items-center justify-center bg-[#f4f7fb] text-sm text-[#98a2b3]">Chưa có hình ảnh</div>
         )}
@@ -48,7 +48,7 @@ export function ProductGallery({ images, name, discount }: { images: GalleryImag
             >
               {item.url ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={item.url} alt={item.alt || name} className="h-full w-full object-contain" />
+                <img src={item.url} alt={item.alt || name} width={100} height={100} className="h-full w-full object-contain" />
               ) : null}
             </button>
           ))}

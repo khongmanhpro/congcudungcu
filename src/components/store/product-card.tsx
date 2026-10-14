@@ -41,10 +41,10 @@ export function ProductCard({ product, stats }: { product: ProductCardData; stat
         className={`absolute right-2.5 top-2.5 z-10 h-2 w-2 rounded-full ${inStock ? "bg-[#16a34a]" : "bg-price"}`}
         title={inStock ? "Còn hàng" : "Hết hàng"}
       />
-      <Link href={href} className="relative block aspect-square overflow-hidden rounded bg-white">
+      <Link href={href} aria-label={image?.alt || product.name} className="relative block aspect-square overflow-hidden rounded bg-white">
         {image ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={image.url} alt={image.alt || product.name} loading="lazy" className="h-full w-full object-contain transition duration-300 group-hover:scale-105" />
+          <img src={image.url} alt={image.alt || product.name} loading="lazy" width={400} height={400} className="h-full w-full object-contain transition duration-300 group-hover:scale-105" />
         ) : (
           <div className="flex h-full items-center justify-center bg-[#f5f6f8] text-xs text-[#98a2b3]">Chưa có ảnh</div>
         )}
