@@ -41,7 +41,7 @@ categories: tuyp-can-siet, dau-tuyp, bo-tuyp, can-siet-phu-kien, can-luc
 <p>Tuýp 6 cạnh ôm vào mặt phẳng của đai ốc, bám chắc, ít làm tròn cạnh, phù hợp khi cần lực lớn hoặc bu lông đã gỉ. Tuýp 12 cạnh dễ đặt vào đai ốc ở nhiều góc hơn, tiện khi thao tác nhanh, nhưng bám kém hơn khi đai ốc đã mòn. Với công việc nặng, nên ưu tiên tuýp 6 cạnh.</p>
 
 <h3>Tuýp ngắn hay tuýp dài</h3>
-<p>Tuýp ngắn gọn, dùng ở chỗ ít không gian theo chiều cao. Tuýp dài dùng khi bu lông nhô dài hoặc đai ốc nằm sâu, ví dụ bu lông có ren thừa, bugi. Ngoài ra còn có đầu tuýp hoa thị, đầu tuýp lục giác, đầu tuýp mũi vít cho các loại ốc đặc biệt. Xem các loại tại danh mục <a href="/tuyp-can-siet/dau-tuyp">đầu tuýp</a>, trong đó có nhiều mẫu <a href="/thuong-hieu/wokin/dau-tuyp">đầu tuýp WOKIN</a>.</p>
+<p>Tuýp ngắn gọn, dùng ở chỗ ít không gian theo chiều cao. Tuýp dài dùng khi bu lông nhô dài hoặc đai ốc nằm sâu, ví dụ bu lông có ren thừa. Riêng bugi nên dùng tuýp bugi chuyên dụng có đệm cao su hoặc nam châm giữ để không làm vỡ sứ cách điện. Ngoài ra còn có đầu tuýp hoa thị, đầu tuýp lục giác, đầu tuýp mũi vít cho các loại ốc đặc biệt. Xem các loại tại danh mục <a href="/tuyp-can-siet/dau-tuyp">đầu tuýp</a>, trong đó có nhiều mẫu <a href="/thuong-hieu/wokin/dau-tuyp">đầu tuýp WOKIN</a>.</p>
 
 <h3>Tuýp trắng (mạ crôm) và tuýp đen (tuýp đập)</h3>
 <p>Tuýp mạ crôm dùng với cần siết tay. Tuýp đen (impact socket) có thành dày hơn, được chế tạo để chịu va đập liên tục, dùng với súng siết bu lông và <a href="/may-khoan-van-vit/may-van-vit-siet-bu-long">máy siết bu lông</a>. Không dùng tuýp mạ crôm cho súng siết vì tuýp có thể nứt, vỡ và văng mảnh.</p>

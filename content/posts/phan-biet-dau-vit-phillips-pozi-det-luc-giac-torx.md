@@ -6,7 +6,7 @@ seoTitle: Phân biệt đầu vít Phillips, Pozi, Torx
 seoDesc: Phân biệt đầu vít Phillips, Pozi, dẹt, lục giác, Torx: cách nhận biết, ký hiệu PH, PZ, T, cách chọn tua vít, đầu vít đúng cỡ và lưu ý tránh trờn ốc.
 categories: tua-vit-luc-giac, tua-vit, bo-tua-vit, dau-vit-mui-vit, luc-giac-hoa-thi
 ---
-<p>Đầu vít được phân biệt theo hình dạng rãnh trên đầu ốc. <strong>Phillips (PH)</strong> là rãnh chữ thập, <strong>Pozi (PZ)</strong> là chữ thập có thêm bốn vạch nhỏ xen giữa, <strong>dẹt</strong> là một rãnh thẳng, <strong>lục giác</strong> là lỗ sáu cạnh và <strong>Torx</strong> là lỗ hình sao sáu cánh. Mỗi kiểu cần tua vít hoặc đầu vít đúng loại và đúng cỡ. Dùng sai loại, dù nhìn gần giống, là nguyên nhân phổ biến nhất khiến ốc bị trờn và mũi vít nhanh mòn.</p>
+<p>Đầu vít được phân biệt theo hình dạng rãnh trên đầu ốc. <strong>Phillips (PH)</strong> là rãnh chữ thập, <strong>Pozi (PZ)</strong> là chữ thập có thêm bốn vạch nhỏ xen giữa, <strong>dẹt</strong> là một rãnh thẳng, <strong>lục giác</strong> là lỗ sáu cạnh và <strong>Torx</strong> là lỗ hình sao sáu cánh. Mỗi kiểu cần tua vít hoặc đầu vít đúng loại và đúng cỡ. Dùng sai loại, dù nhìn gần giống, là nguyên nhân thường gặp khiến ốc bị trờn và mũi vít nhanh mòn.</p>
 
 <h2>Các loại đầu vít phổ biến</h2>
 

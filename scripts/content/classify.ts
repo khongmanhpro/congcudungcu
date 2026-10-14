@@ -128,6 +128,24 @@ async function main() {
   const emptyBrands = await prisma.brand.deleteMany({ where: { products: { none: {} } } });
   if (emptyBrands.count) console.log(`Xoá ${emptyBrands.count} thương hiệu không có sản phẩm.`);
 
+  // 6c) Slug sản phẩm chứa ký tự mã hoá (WordPress lưu "1-2″" thành "1-2%e2%80%b3") → trang 404. Đổi slug sạch + redirect 301.
+  // lọc bằng JS: Prisma không thoát "%" trong `contains` (LIKE '%%%' khớp mọi dòng)
+  const encoded = (await prisma.product.findMany({ select: { id: true, slug: true } })).filter((p) => p.slug.includes("%"));
+  for (const p of encoded) {
+    let decoded = p.slug;
+    try { decoded = decodeURIComponent(p.slug); } catch {}
+    const base = decoded.replace(/[″"]/g, "-inch").normalize("NFD").replace(/[^a-z0-9-]/gi, "").toLowerCase().replace(/-+/g, "-").replace(/^-|-$/g, "");
+    let slug = base;
+    for (let i = 2; await prisma.product.findFirst({ where: { slug, id: { not: p.id } }, select: { id: true } }); i++) slug = `${base}-${i}`;
+    await prisma.product.update({ where: { id: p.id }, data: { slug } });
+    // cả dạng mã hoá (thường/HOA) lẫn dạng đã giải mã — tuỳ nơi đã lưu/chia sẻ link cũ
+    for (const from of new Set([p.slug, p.slug.replace(/%[0-9a-f]{2}/gi, (m) => m.toUpperCase()), decoded])) {
+      const r = { from: `/san-pham/${from}`, to: `/san-pham/${slug}` };
+      await prisma.redirect.upsert({ where: { from: r.from }, update: { to: r.to, code: 301 }, create: { ...r, code: 301 } });
+    }
+  }
+  if (encoded.length) console.log(`Đổi ${encoded.length} slug sản phẩm có ký tự mã hoá (kèm redirect 301).`);
+
   // 7) Ảnh đại diện danh mục = ảnh sản phẩm mới nhất trong cây (nếu chưa có)
   for (const node of nodes) {
     const id = idBySlug.get(node.slug)!;

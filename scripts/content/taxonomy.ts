@@ -72,6 +72,12 @@ export const TAXONOMY: TaxonomyNode[] = [
       { slug: "duc-giua-dot-lo", name: "Đục, giũa & đột lỗ" },
       { slug: "cao-thao", name: "Cảo tháo" },
       { slug: "taro-ban-ren", name: "Taro & bàn ren" },
+      { slug: "cay-nay-xa-beng", name: "Cây nạy & xà beng" },
+      { slug: "dung-cu-gap-nhat-soi", name: "Dụng cụ gắp, nhặt & soi" },
+      { slug: "dung-cu-cat-loe-uon-ong", name: "Dụng cụ cắt, loe & uốn ống" },
+      { slug: "sung-ban-dinh-rive", name: "Dụng cụ bắn đinh, rive & silicon" },
+      { slug: "sui-son-dung-cu-son", name: "Sủi sơn & dụng cụ sơn" },
+      { slug: "dung-cu-lam-vuon", name: "Dụng cụ làm vườn" },
       { slug: "dung-cu-cam-tay-khac", name: "Dụng cụ cầm tay khác" },
     ],
   },
@@ -147,6 +153,24 @@ export const TAXONOMY: TaxonomyNode[] = [
 
 /** Luật phân loại: [slug danh mục lá, regex trên tên đã bỏ dấu]. Thứ tự = độ ưu tiên. */
 export const RULES: [string, RegExp][] = [
+  // --- cụm cụ thể (rà soát nhóm "Dụng cụ cầm tay khác") ---
+  ["bo-co-le", /\bbo khoa (2 dau|hai dau|vong|mieng)/], // miền Nam gọi cờ lê là "khóa"
+  ["bo-dung-cu", /(hop do nghe \d+ chi tiet|vali dung cu \d+|bo phu kien chuyen dung)/],
+  ["kim-bam-cos-tuot-day", /(tach cap|tuot cap|ep cos)/],
+  ["dung-cu-khi-nen", /\bsung hoi\b/],
+  ["may-van-vit-siet-bu-long", /\bsung van bu ?long/],
+  ["sung-ban-dinh-rive", /(sung ban (dinh|rive|silicon|ghim)|ban dinh|dinh rive|bam ghim|dinh ghim|ghim chu u|dinh tan|\brive\b)/],
+  ["dung-cu-gap-nhat-soi", /(nhat oc|nhip gap|kep nhat|guong soi|soi oc|hut vat roi|noi soi|mini pick|moc mini)/],
+  ["dung-cu-cat-loe-uon-ong", /\b(cat ong|loe ong|la ong|uon ong)/],
+  ["cay-nay-xa-beng", /(cay nay|thanh bay|\bnay oc vit|dung cu nay|xa beng)/],
+  ["sui-son-dung-cu-son", /(sui son|bay son|co lan son|lan son)/],
+  ["dung-cu-lam-vuon", /(\bxeng\b|cuoc chim|tuoi cay|tuoi vuon|day nuoc|voi nuoc|cua canh|binh xit tuoi)/],
+  ["phu-kien-cat-mai", /\bban chai (sat|soi thep)/],
+  ["dung-cu-sua-chua-o-to", /(sec mang|(khoa|giu|cao) puly|bom nhien lieu|loc nhot|kim phun|mach dien xe|goc lai|acquy|ac quy|hut dau|cham (dau )?nhot|hung nhot|ghe ngoi sua chua|tham co khi|dem lot|^de (cong|dai|goc|got|hai|mong|tron|da nang|dau)|cay chan)/],
+  ["thiet-bi-nang-ha", /(\bdoi \d+ tan|may ep thuy luc)/],
+  ["dung-cu-dien", /(may thong (cong|tac)|may rung|bom chim)/],
+  ["tu-hop-do-nghe", /(\bba lo\b|^hop cong cu|tu treo|ke thep|ke da nang|\bbo \d+ tu\b|day buoc dung cu)/],
+  ["bao-ho-lao-dong", /\bao lam viec\b/],
   // --- máy & thiết bị (chứa từ "may" nên xét trước dụng cụ cầm tay) ---
   // ranh giới từ cuối: "kìm hàng rào" / "xe đẩy hàng" bỏ dấu thành "kim hang" / "day hang"
   ["may-han", /\b(may han|mo han|kim han|que han|bo han|day han|mat na han|welder|mig|mma|plasma|tig)\b/],

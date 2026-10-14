@@ -64,6 +64,7 @@ categories: may-han, may-mai, may-cat-may-cua, phu-kien-cat-mai, may-mai-may-cat
 <li>Nối đất và kẹp mát chắc chắn, không thao tác khi tay hoặc nền ướt, tắt máy trước khi thay béc, điện cực.</li>
 <li>Làm việc nơi thông gió tốt hoặc có hút khói, nhất là khi cắt inox, kim loại mạ hoặc sơn.</li>
 <li>Dọn vật dễ cháy khỏi khu vực cắt, chuẩn bị bình chữa cháy.</li>
+<li>Không cắt thùng, bình, ống từng chứa nhiên liệu, dầu hoặc khí dễ cháy khi chưa được làm sạch và xử lý an toàn.</li>
 </ul>
 <h3>Với máy mài cắt</h3>
 <ul>

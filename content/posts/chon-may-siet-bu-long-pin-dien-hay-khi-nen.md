@@ -48,7 +48,7 @@ categories: may-van-vit-siet-bu-long, may-khoan-van-vit, dung-cu-khi-nen, dau-tu
 
 <h2>Đầu tuýp và cần lực đi kèm</h2>
 <p>Máy siết bu lông phải dùng đầu tuýp chuyên dùng cho máy (đầu tuýp đen, loại chịu va đập), không dùng đầu tuýp mạ crôm dành cho dụng cụ cầm tay. Đầu tuýp tay có thể nứt vỡ dưới tác động của xung lực, gây nguy hiểm. Xem các loại <a href="/tuyp-can-siet/dau-tuyp">đầu tuýp</a> phù hợp với cỡ đầu vuông của máy.</p>
-<p>Máy siết bu lông không phải dụng cụ đo lực. Lực siết thực tế thay đổi theo mức pin, áp suất khí, tình trạng ren và thời gian bóp cò. Với bánh xe, mặt bích và các mối ghép có quy định lực siết, nên siết sơ bằng máy rồi siết cuối bằng <a href="/tuyp-can-siet/can-luc">cần lực</a> theo đúng thông số kỹ thuật và thứ tự siết.</p>
+<p>Máy siết bu lông không phải dụng cụ đo lực. Lực siết thực tế thay đổi theo mức pin, áp suất khí, tình trạng ren và thời gian bóp cò. Với bánh xe, mặt bích và các mối ghép có quy định lực siết, nên siết sơ bằng máy ở cấp lực thấp rồi siết cuối bằng <a href="/tuyp-can-siet/can-luc">cần lực</a> theo đúng thông số kỹ thuật và thứ tự siết. Không để máy siết quá lực rồi mới kiểm tra bằng cần lực: cần lực chỉ báo khi đạt lực đã đặt, không phát hiện được bu lông đã bị siết quá.</p>
 
 <h2>An toàn khi dùng máy siết bu lông</h2>
 <ul>

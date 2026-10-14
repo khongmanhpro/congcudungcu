@@ -48,6 +48,7 @@ categories: thang-nhom, thiet-bi-nha-xuong
 <li>Dựng trên nền phẳng, chắc, khô. Không kê chân thang bằng gạch, thùng hay vật không chắc chắn.</li>
 <li>Thang chữ A phải mở hết và khóa thanh giằng. Không dùng thang chữ A gấp lại để tựa tường.</li>
 <li>Thang tựa nên đặt theo tỷ lệ khoảng 4:1, nghĩa là cứ 4 phần chiều cao thì chân thang cách tường 1 phần.</li>
+<li>Đầu thang tựa phải tì lên bề mặt chắc chắn, không tựa vào kính, máng nước hay vật dễ gãy. Khi có thể, buộc cố định đầu thang hoặc có người giữ chân thang.</li>
 <li>Kiểm tra khu vực phía trên không có dây điện. Rào chắn hoặc khóa cửa nếu thang đặt gần lối đi, cửa ra vào.</li>
 <li>Mang giày đế bám, khô; không leo khi chóng mặt, mệt hoặc trời gió mạnh nếu làm ngoài trời.</li>
 </ul>

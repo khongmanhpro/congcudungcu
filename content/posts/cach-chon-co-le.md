@@ -18,7 +18,7 @@ categories: co-le-mo-let, co-le-vong-mieng, co-le-hai-dau-vong, co-le-hai-dau-mi
 <p>Cờ lê hai đầu vòng có hai đầu đều là vòng kín, mỗi đầu một cỡ khác nhau (ví dụ 10x13mm, 14x15mm). Vì ôm kín toàn bộ đai ốc, loại này truyền lực đều, ít trượt và ít làm tròn cạnh đai ốc. Xem thêm nhóm <a href="/co-le-mo-let/co-le-hai-dau-vong">cờ lê hai đầu vòng</a>.</p>
 
 <h3>Cờ lê hai đầu miệng</h3>
-<p>Cờ lê hai đầu miệng (còn gọi là cờ lê dẹt) có hai đầu hở, mỗi đầu một cỡ. Ưu điểm là đưa vào đai ốc từ cạnh bên, rất cần khi làm với đầu nối ống dầu, ống gas, ống thủy lực hoặc vị trí không thể chụp đầu vòng từ trên xuống. Nhược điểm là chỉ tiếp xúc với hai mặt của đai ốc nên dễ trượt nếu dùng lực lớn. Danh mục <a href="/co-le-mo-let/co-le-hai-dau-mieng">cờ lê hai đầu miệng</a> có đủ cỡ từ nhỏ đến lớn.</p>
+<p>Cờ lê hai đầu miệng (còn gọi là cờ lê dẹt) có hai đầu hở, mỗi đầu một cỡ. Ưu điểm là đưa vào đai ốc từ cạnh bên, cần thiết ở vị trí không thể chụp đầu vòng từ trên xuống, ví dụ đầu nối ống. Nhược điểm là chỉ tiếp xúc với hai mặt của đai ốc nên dễ trượt nếu dùng lực lớn. Với rắc co ống dầu phanh, ống gas, ống thủy lực bằng đồng hoặc vật liệu mềm, nên dùng cờ lê mở ống (cờ lê vòng hở) để ôm nhiều mặt hơn và hạn chế làm tròn cạnh. Danh mục <a href="/co-le-mo-let/co-le-hai-dau-mieng">cờ lê hai đầu miệng</a> có đủ cỡ từ nhỏ đến lớn.</p>
 
 <h3>Cờ lê tự động (cờ lê lắc)</h3>
 <p>Cờ lê tự động có đầu vòng tích hợp cơ cấu bánh cóc, cho phép vặn liên tục theo một chiều mà không cần nhấc cờ lê ra. Loại này giúp làm nhanh ở vị trí góc quay hẹp, đặc biệt khi phải vặn bu lông dài. Tham khảo các mẫu <a href="/co-le-mo-let/co-le-tu-dong">cờ lê tự động</a>.</p>
@@ -57,7 +57,7 @@ categories: co-le-mo-let, co-le-vong-mieng, co-le-hai-dau-vong, co-le-hai-dau-mi
 <h3>Gợi ý theo nhu cầu</h3>
 <ul>
 <li><strong>Bảo trì, sửa ô tô, xe máy:</strong> bộ cờ lê vòng miệng đủ cỡ, thêm cờ lê tự động các cỡ hay dùng.</li>
-<li><strong>Lắp đặt đường ống, điều hòa, thủy lực:</strong> ưu tiên cờ lê hai đầu miệng cho đầu nối ống.</li>
+<li><strong>Lắp đặt đường ống, điều hòa, thủy lực:</strong> dùng cờ lê hai đầu miệng cho đầu nối ống thông thường; với rắc co ống mềm hoặc cần lực lớn, ưu tiên cờ lê mở ống (cờ lê vòng hở).</li>
 <li><strong>Cơ khí nặng:</strong> bổ sung cờ lê hai đầu vòng, cờ lê đóng và cỡ lớn.</li>
 </ul>
 
@@ -76,7 +76,7 @@ categories: co-le-mo-let, co-le-vong-mieng, co-le-hai-dau-vong, co-le-hai-dau-mi
 <h3>Cờ lê vòng miệng và cờ lê hai đầu vòng khác nhau thế nào?</h3>
 <p>Cờ lê vòng miệng có một đầu vòng và một đầu miệng cùng cỡ, còn cờ lê hai đầu vòng có hai đầu vòng với hai cỡ khác nhau. Vòng miệng linh hoạt hơn, hai đầu vòng bám chắc hơn và một cây dùng được hai cỡ.</p>
 <h3>Cờ lê tự động có dùng để phá bu lông bị kẹt được không?</h3>
-<p>Không nên. Cơ cấu bánh cóc là điểm chịu lực của cờ lê tự động. Với bu lông kẹt hoặc gỉ, nên nới trước bằng cờ lê vòng cố định hoặc tuýp và cần siết, sau đó mới dùng cờ lê tự động để vặn nhanh.</p>
+<p>Không nên. Cơ cấu bánh cóc là điểm chịu lực yếu nhất của cờ lê tự động. Với bu lông kẹt hoặc gỉ, nên nới trước bằng cờ lê vòng cố định hoặc tuýp và cần siết, sau đó mới dùng cờ lê tự động để vặn nhanh.</p>
 <h3>Có nên dùng mỏ lết thay cho cờ lê không?</h3>
 <p>Mỏ lết tiện khi cần một dụng cụ cho nhiều cỡ, nhưng ngàm điều chỉnh có độ rơ nên dễ trượt và làm tròn đai ốc hơn cờ lê đúng cỡ. Với công việc thường xuyên hoặc lực lớn, nên dùng cờ lê.</p>
 <h3>Mua bộ cờ lê bao nhiêu chi tiết là đủ?</h3>

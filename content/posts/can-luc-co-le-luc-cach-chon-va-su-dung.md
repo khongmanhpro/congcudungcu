@@ -37,7 +37,7 @@ categories: can-luc, tuyp-can-siet, dau-tuyp, can-siet-phu-kien, bo-tuyp
 </table>
 
 <h2>Cách chọn dải lực và đầu vuông</h2>
-<p>Nguyên tắc quan trọng nhất là chọn cần lực có dải đo sao cho lực siết bạn dùng thường xuyên nằm ở khoảng giữa thang đo, không nằm sát giá trị nhỏ nhất hoặc lớn nhất. Ở hai đầu thang đo, độ chính xác của nhiều loại cần lực giảm. Tiêu chuẩn ISO 6789 dành cho dụng cụ siết lực cầm tay và quy định cách thử, sai số cho phép; thông số cụ thể của từng cây được ghi trong tài liệu hoặc giấy chứng nhận của nhà sản xuất.</p>
+<p>Nguyên tắc quan trọng nhất là chọn cần lực có dải đo sao cho lực siết bạn dùng thường xuyên nằm ở khoảng giữa thang đo, không nằm sát giá trị nhỏ nhất hoặc lớn nhất. Ở phần thấp của thang đo, sai số tương đối của cần lực thường lớn hơn và nhiều nhà sản xuất chỉ công bố độ chính xác từ một mức tối thiểu trở lên; còn nếu thường xuyên dùng sát giá trị lớn nhất thì không còn dư tải và dễ vượt quá dải đo. Tiêu chuẩn ISO 6789 dành cho dụng cụ siết lực cầm tay và quy định cách thử, sai số cho phép; thông số cụ thể của từng cây được ghi trong tài liệu hoặc giấy chứng nhận của nhà sản xuất.</p>
 <ul>
 <li><strong>Tra lực siết trước:</strong> lấy giá trị từ tài liệu kỹ thuật của xe, máy hoặc bản vẽ. Không ước lượng theo cảm giác.</li>
 <li><strong>Nhiều mức lực khác nhau:</strong> nên dùng hai cây, một cây dải nhỏ và một cây dải lớn, thay vì cố dùng một cây cho tất cả.</li>
