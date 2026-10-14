@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
-// Trang tiện ích: không index (tránh trang mỏng/trùng lặp), vẫn cho bot đi theo link
+// Đã Disallow trong robots.txt (xem src/app/robots.ts) — không thêm noindex ở đây để tránh
+// tín hiệu mâu thuẫn (Googlebot không crawl được trang để đọc thẻ noindex).
 export const metadata: Metadata = {
   title: "Giỏ hàng",
-  robots: { index: false, follow: true },
 };
 
 export default function Layout({ children }: { children: React.ReactNode }) {

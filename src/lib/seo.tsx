@@ -72,6 +72,7 @@ export function siteJsonLd(settings: Record<string, string>) {
       "@id": `${siteUrl}/#organization`,
       name: settings.company_name || SITE_NAME,
       url: siteUrl,
+      logo: absoluteUrl("/brand/icon.png"),
       email: settings.contact_email || undefined,
       telephone: settings.contact_hotline || undefined,
       address: settings.contact_address ? { "@type": "PostalAddress", streetAddress: settings.contact_address, addressCountry: "VN" } : undefined,

@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 const DEFAULT_ADDRESS = "T2/D3B/31, Đường Bình Chuẩn 62, Khu phố Bình Thuận 2, Phường Thuận Giao, Thành phố Hồ Chí Minh";
 const DEFAULT_PHONE = "0978.39.03.39";
 const DEFAULT_HOTLINE = "+84 978.39.03.39";
-const DEFAULT_BUSINESS_HOURS = "24/7";
+const DEFAULT_BUSINESS_HOURS = "Thứ 2 – Thứ 7: 7:30 – 17:30";
 
 export default async function ContactPage() {
   const settings = await prisma.setting.findMany().catch(() => [

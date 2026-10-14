@@ -154,11 +154,11 @@ export default async function BlogPage({ searchParams }: { searchParams: Promise
           <nav className="mb-6 flex items-center gap-2 text-sm text-white/85">
             <Link href="/" className="hover:text-white">Trang chủ</Link>
             <ChevronRight className="h-4 w-4" />
-            <span>Tin tức</span>
+            <span>Kiến thức</span>
           </nav>
           <div className="max-w-2xl">
             <p className="mb-3 text-sm font-black uppercase tracking-[0.14em] text-[#9fd3ff]">Bản tin công nghiệp</p>
-            <h1 className="text-4xl font-black uppercase leading-tight sm:text-5xl">Tin tức</h1>
+            <h1 className="text-4xl font-black uppercase leading-tight sm:text-5xl">Kiến thức</h1>
             <p className="mt-4 max-w-xl text-base font-medium leading-7 text-white/88">
               Cập nhật thông tin, kiến thức và xu hướng mới nhất về ngành công cụ dụng cụ, thiết bị công nghiệp chính hãng.
             </p>

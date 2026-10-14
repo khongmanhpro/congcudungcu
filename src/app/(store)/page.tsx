@@ -161,23 +161,21 @@ export default async function HomePage() {
           </Card>
         )}
 
-        <Card
-          title="Khuyến mãi tự động"
-          action={
-            <Link href="/lien-he" className="rounded-full bg-gradient-to-r from-gold to-[#d97706] px-4 py-2 text-xs font-bold text-white shadow hover:brightness-105 sm:text-sm">
-              + Yêu cầu giá khuyến mãi
-            </Link>
-          }
-        >
-          {sale.length > 0 ? (
+        {sale.length > 0 && (
+          <Card
+            title="Khuyến mãi tự động"
+            action={
+              <Link href="/lien-he" className="rounded-full bg-gradient-to-r from-gold to-[#d97706] px-4 py-2 text-xs font-bold text-white shadow hover:brightness-105 sm:text-sm">
+                + Yêu cầu giá khuyến mãi
+              </Link>
+            }
+          >
             <ProductPages products={sale} stats={stats} />
-          ) : (
-            <p className="text-sm text-[#475569]">Chưa có sản phẩm đủ điều kiện khuyến mãi.</p>
-          )}
-        </Card>
+          </Card>
+        )}
 
         {newest.length > 0 && (
-          <Card title="Dòng sản phẩm mới" meta={`Luôn lấy ${newest.length} sản phẩm mới nhất`}>
+          <Card title="Dòng sản phẩm mới" meta={`${newest.length} sản phẩm mới nhất`}>
             <ProductPages products={newest} stats={stats} />
           </Card>
         )}
