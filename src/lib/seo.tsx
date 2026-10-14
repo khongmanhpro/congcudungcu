@@ -73,6 +73,7 @@ export function siteJsonLd(settings: Record<string, string>) {
       name: settings.company_name || SITE_NAME,
       url: siteUrl,
       logo: absoluteUrl("/brand/icon.png"),
+      foundingDate: "2022-03",
       email: settings.contact_email || undefined,
       telephone: settings.contact_hotline || undefined,
       address: settings.contact_address ? { "@type": "PostalAddress", streetAddress: settings.contact_address, addressCountry: "VN" } : undefined,
