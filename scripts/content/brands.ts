@@ -59,7 +59,12 @@ export function detectBrand(normalizedName: string): BrandDef | null {
  *  - mã chữ+số: "AAEB1010", "GSB 13 RE", "YMS-005", "WM-430"
  *  - dãy số 5–6 chữ số (WOKIN 738012)
  */
+/** Số hiệu tiêu chuẩn / cỡ ren trong tên (EN471, EN 20345, IEC 60900, M18) không phải mã sản phẩm. */
+const NOT_MODEL = /\b(?:EN|ISO|DIN|IEC|ANSI|VDE)\s?\d[\d:-]*\b|\bM\d{1,2}(?:x\d+(?:\.\d+)?)?\b/gi;
+export const looksLikeStandard = (model: string) => new RegExp(`^(?:${NOT_MODEL.source})$`, "i").test(model.trim());
+
 export function extractModel(name: string): string | null {
+  name = name.replace(NOT_MODEL, " ");
   const patterns = [
     /\b(\d{2} \d{2} \d{3})\b/, // Knipex 20 02 140
     /\b(0\d{3} \d{4})\b/, // Matador 0584 0410

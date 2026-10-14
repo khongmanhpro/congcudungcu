@@ -11,7 +11,7 @@ import "dotenv/config";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../../src/generated/prisma/client";
-import { detectBrand, extractModel } from "./brands";
+import { detectBrand, extractModel, looksLikeStandard } from "./brands";
 import { FALLBACK, OLD_CATEGORY_REDIRECT, classifyName, flattenTaxonomy, normalizeName } from "./taxonomy";
 
 const DRY_RUN = process.argv.includes("--dry-run");
@@ -44,7 +44,8 @@ async function main() {
       target,
       via: ruleSlug ? "rule" : fallbackSlug ? "fallback" : "default",
       brand: detectBrand(normalized),
-      model: p.model ?? extractModel(p.name),
+      // model cũ là số tiêu chuẩn (EN471, M18…) → tách lại từ tên
+      model: p.model && !looksLikeStandard(p.model) ? p.model : extractModel(p.name),
     };
   });
 
@@ -102,7 +103,7 @@ async function main() {
       data: { categoryId: idBySlug.get(catSlug)!, ...(brandSlug ? { brandId: brandIdBySlug.get(brandSlug)! } : {}) },
     });
   }
-  for (const row of plan.filter((r) => r.model && r.model !== products.find((p) => p.id === r.id)?.model)) {
+  for (const row of plan.filter((r) => r.model !== products.find((p) => p.id === r.id)?.model)) {
     await prisma.product.update({ where: { id: row.id }, data: { model: row.model } });
   }
 

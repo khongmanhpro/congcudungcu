@@ -148,12 +148,28 @@ export const TAXONOMY: TaxonomyNode[] = [
     ],
   },
   { slug: "bao-ho-lao-dong", name: "Bảo hộ lao động" },
-  { slug: "dung-cu-dung-xang", name: "Dụng cụ dùng xăng" },
+  { slug: "dung-cu-dung-xang", name: "Máy phát điện, máy bơm & máy cắt cỏ" },
 ];
 
 /** Luật phân loại: [slug danh mục lá, regex trên tên đã bỏ dấu]. Thứ tự = độ ưu tiên. */
 export const RULES: [string, RegExp][] = [
-  // --- cụm cụ thể (rà soát nhóm "Dụng cụ cầm tay khác") ---
+  // --- sửa nhầm lẫn do agent viết mô tả phát hiện (danh mục cũ của site sai / trùng chữ) ---
+  ["tu-hop-do-nghe", /(\bhoc keo\b|\bvali keo\b|\btui (deo|dung|do nghe)|^tu (di dong|dung)\b)/],
+  ["cao-thao", /^cao pu ?ly/],
+  ["may-do-dong-ho-do", /(phat hien (ro ri )?khi|do khi gas)/],
+  ["dung-cu-dien", /(sung hoi nong|hot air gun)/],
+  ["sung-ban-dinh-rive", /\bsilicon\b/],
+  ["thiet-bi-nha-xuong-khac", /(lo nuong|^ban dieu chinh)/],
+  ["dung-cu-cam-tay-khac", /(tach dai oc|dong (chu|so)\b)/],
+  ["may-cat-may-cua", /^may cua\b(?! xich)/],
+  ["may-van-vit-siet-bu-long", /^may ban vit\b/],
+  ["dung-cu-lam-vuon", /(choi cao|day cat co)/],
+  ["dung-cu-sua-chua-o-to", /(^de (hinh|truyen|dinh|co)\b|\bep lo xo)/],
+  ["duc-giua-dot-lo", /(^bao go|^mai go bang tay)/],
+  ["thiet-bi-dien-khac", /(cuon day dien|\brulo\b)/],
+  ["thuoc-cuon", /^thuoc \d+ ?m\b/],
+  ["co-le-dac-biet", /(flare nut|vang van|van van)/],
+
   ["bo-co-le", /\bbo khoa (2 dau|hai dau|vong|mieng)/], // miền Nam gọi cờ lê là "khóa"
   ["bo-dung-cu", /(hop do nghe \d+ chi tiet|vali dung cu \d+|bo phu kien chuyen dung)/],
   ["kim-bam-cos-tuot-day", /(tach cap|tuot cap|ep cos)/],
