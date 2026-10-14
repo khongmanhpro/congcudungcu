@@ -90,7 +90,7 @@ export async function StoreHeader() {
           <MobileCategoryDrawer categories={categories} />
           <Link href="/" className="flex min-w-0 items-center">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/brand/logo-header.png" alt="Công Cụ Dụng Cụ" width={1213} height={190} className="h-8 w-auto max-w-full object-contain sm:h-10" />
+            <img src="/brand/logo-header.webp" alt="Công Cụ Dụng Cụ" width={1213} height={190} className="h-8 w-auto max-w-full object-contain sm:h-10" />
           </Link>
         </div>
 

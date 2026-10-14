@@ -124,7 +124,7 @@ export default async function PostDetailPage({ params }: { params: Promise<{ slu
               // khung cao cố định → không đẩy nội dung khi ảnh tải xong (CLS)
               <div className="mt-4 h-64 w-full sm:h-72">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={post.coverImage} alt={post.title} fetchPriority="high" className="h-full w-full rounded-md bg-white object-contain" />
+                <img src={post.coverImage} alt={post.title} fetchPriority="high" width={1200} height={576} className="h-full w-full rounded-md bg-white object-contain" />
               </div>
             )}
             <div className="rich-content mt-5 max-w-none" dangerouslySetInnerHTML={{ __html: contentHtml }} />
