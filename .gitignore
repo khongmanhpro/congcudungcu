@@ -56,3 +56,4 @@ congcudungcu-backup.sql
 
 # Báo cáo sinh ra bởi scripts/content
 /tmp/
+*.tar.gz
