@@ -169,6 +169,18 @@ export const RULES: [string, RegExp][] = [
   ["thiet-bi-dien-khac", /(cuon day dien|\brulo\b)/],
   ["thuoc-cuon", /^thuoc \d+ ?m\b/],
   ["co-le-dac-biet", /(flare nut|vang van|van van)/],
+  ["e-to-kep", /^kim chu f\b/],
+  ["may-do-dong-ho-do", /(do khoang cach|khoang cach do laser|\bglm ?\d)/],
+  ["thiet-bi-nha-xuong-khac", /^ban nguoi\b/],
+  ["tua-vit", /^tua vit\b/],
+  ["may-khoan", /^may khoan (dong luc|bua)\b/],
+  ["may-van-vit-siet-bu-long", /(\bgds ?\d|^may van bu ?long)/],
+  ["bo-dung-cu", /^vali (do nghe|dung cu)/],
+  ["dung-cu-lam-vuon", /(keo cat tia|garden saw)/],
+  ["kim-mui-nhon", /^kim mui tron\b/],
+  ["dau-vit-mui-vit", /^bo dau vit\b/],
+  ["can-siet-phu-kien", /(extension bar|^thanh noi)/],
+  ["thiet-bi-dien-khac", /^(binh )?ac ?quy\b/],
 
   ["bo-co-le", /\bbo khoa (2 dau|hai dau|vong|mieng)/], // miền Nam gọi cờ lê là "khóa"
   ["bo-dung-cu", /(hop do nghe \d+ chi tiet|vali dung cu \d+|bo phu kien chuyen dung)/],

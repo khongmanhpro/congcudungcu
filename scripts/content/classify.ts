@@ -19,6 +19,15 @@ const prisma = new PrismaClient({ adapter: new PrismaPg(process.env.DATABASE_URL
 
 const csvCell = (value: unknown) => `"${String(value ?? "").replace(/"/g, '""')}"`;
 
+/** Giữ model đã lưu, trừ khi là số tiêu chuẩn/rác hoặc bị cắt ngắn (lưu "GDX 18V", tên ghi "GDX 18V-200 C"). */
+function pickModel(stored: string | null, name: string): string | null {
+  const extracted = extractModel(name);
+  if (!stored || looksLikeStandard(stored)) return extracted;
+  const squash = (s: string) => s.replace(/[\s-]+/g, "").toLowerCase();
+  if (extracted && extracted.length > stored.length && squash(extracted).startsWith(squash(stored))) return extracted;
+  return stored;
+}
+
 async function main() {
   const nodes = flattenTaxonomy();
   const nodeBySlug = new Map(nodes.map((n) => [n.slug, n]));
@@ -45,7 +54,7 @@ async function main() {
       via: ruleSlug ? "rule" : fallbackSlug ? "fallback" : "default",
       brand: detectBrand(normalized),
       // model cũ là số tiêu chuẩn (EN471, M18…) → tách lại từ tên
-      model: p.model && !looksLikeStandard(p.model) ? p.model : extractModel(p.name),
+      model: pickModel(p.model, p.name),
     };
   });
 

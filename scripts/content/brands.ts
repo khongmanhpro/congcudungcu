@@ -8,7 +8,7 @@ export type BrandDef = { name: string; slug: string; aliases: RegExp; country?: 
 export const BRANDS: BrandDef[] = [
   { name: "WOKIN", slug: "wokin", aliases: /\bwokin\b/ },
   { name: "TOPTUL", slug: "toptul", aliases: /\btoptul\b/, country: "Đài Loan" },
-  { name: "KNIPEX", slug: "knipex", aliases: /\b(knipex|kniex|knipx)\b/, country: "Đức" },
+  { name: "KNIPEX", slug: "knipex", aliases: /\b(knipex|kniex|knipx)/, country: "Đức" },
   { name: "BOSCH", slug: "bosch", aliases: /\bbosch\b/, country: "Đức" },
   { name: "MATADOR", slug: "matador", aliases: /\bmatador\b/, country: "Đức" },
   { name: "STANLEY", slug: "stanley", aliases: /\bstanley\b/, country: "Mỹ" },
@@ -46,10 +46,15 @@ export const BRANDS: BrandDef[] = [
 
 /** Mã Matador có dạng "0584 0410" (4 số + khoảng trắng + 4 số) khi tên không ghi hãng. */
 const MATADOR_CODE = /\b0\d{3} \d{4}\b/;
+/** Tên chỉ ghi mã máy, không ghi hãng: tiền tố dòng máy Bosch (GSB, GWS…) / mã đặt hàng 06…, 2607…; Makita (DTW, DHP, HR…). */
+const BOSCH_CODE = /\b(gsb|gsr|gbh|gws|gks|gst|gdr|gdx|gds|glm|gll|gml|gho|gop|gkf|gcm|gts|gss|gex|gbg|gsc|ghg|gtb|gas|gsh|gdm|gpo|gwb) ?\d{1,4}(?!\d)|\b06\d{8}\b|\b260[78]\d{6}\b/;
+const MAKITA_CODE = /\b(dtw|dhp|dtd|dur|dlm|dga|dhr|djv|dhs|ddf) ?\d{3}|\b(hr|hg|hm|ga)\d{4}/;
 
 export function detectBrand(normalizedName: string): BrandDef | null {
   for (const brand of BRANDS) if (brand.aliases.test(normalizedName)) return brand;
   if (MATADOR_CODE.test(normalizedName)) return BRANDS.find((b) => b.slug === "matador")!;
+  if (BOSCH_CODE.test(normalizedName)) return BRANDS.find((b) => b.slug === "bosch")!;
+  if (MAKITA_CODE.test(normalizedName)) return BRANDS.find((b) => b.slug === "makita")!;
   return null;
 }
 
@@ -61,14 +66,17 @@ export function detectBrand(normalizedName: string): BrandDef | null {
  */
 /** Số hiệu tiêu chuẩn / cỡ ren trong tên (EN471, EN 20345, IEC 60900, M18) không phải mã sản phẩm. */
 const NOT_MODEL = /\b(?:EN|ISO|DIN|IEC|ANSI|VDE)\s?\d[\d:-]*\b|\bM\d{1,2}(?:x\d+(?:\.\d+)?)?\b/gi;
-export const looksLikeStandard = (model: string) => new RegExp(`^(?:${NOT_MODEL.source})$`, "i").test(model.trim());
+/** Model đã lưu không dùng được: số tiêu chuẩn, đuôi mã Knipex "J02", "SET11PCS"… */
+export const looksLikeStandard = (model: string) =>
+  new RegExp(`^(?:${NOT_MODEL.source})$`, "i").test(model.trim()) || /^(J\d{1,2}|SET\d+PCS)$/i.test(model.trim());
 
 export function extractModel(name: string): string | null {
   name = name.replace(NOT_MODEL, " ");
   const patterns = [
+    /\b(\d{2} \d{2} J\d{1,2})\b/, // Knipex kìm phe 44 11 J1
     /\b(\d{2} \d{2} \d{3})\b/, // Knipex 20 02 140
     /\b(0\d{3} \d{4})\b/, // Matador 0584 0410
-    /\b((?:GSB|GSR|GBH|GWS|GKS|GST|GDR|GDX|GDS|GLM|GLL|GML|GHO|GOP|GKF|GCM|GTS)\s?\d{1,3}V?(?:[- ]\d{1,4})?(?:\s?[A-Z]{1,3})?)\b/, // Bosch
+    /\b((?:GSB|GSR|GBH|GWS|GKS|GST|GDR|GDX|GDS|GLM|GLL|GML|GHO|GOP|GKF|GCM|GTS|GSS|GEX|GBG|GSC|GHG|GTB|GSH|GDM|GPO)\s?\d{1,4}V?(?:[- ]\d{1,4})?(?:-LI)?(?:\s?[A-Z]{1,3}(?=[\s)(]|$))?)(?!\d)/, // Bosch
     /\b([A-Z]{1,5}-?\d{2,6}[A-Z]{0,3})\b/, // AAEB1010, YMS-005, JFDD0105, AK-3746
     /\b(\d{5,10})\b/, // WOKIN 738012, Bosch 2607002793, Mitools 1010001
   ];
