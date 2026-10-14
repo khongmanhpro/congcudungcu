@@ -31,6 +31,14 @@ import {
 
 export const revalidate = 60;
 
+// Không có generateStaticParams → Next coi route này là Dynamic hoàn toàn (SSR mỗi request,
+// Cache-Control: private, no-store), revalidate ở trên vô hiệu lực. Trả mảng rỗng để bật ISR
+// "on-demand" (dynamicParams mặc định true): request đầu tiên render động rồi CACHE theo revalidate,
+// không pre-build sẵn 3.000+ trang lúc build (sẽ làm chậm docker build).
+export async function generateStaticParams() {
+  return [];
+}
+
 type ProductDetail = {
   id: string;
   name: string;

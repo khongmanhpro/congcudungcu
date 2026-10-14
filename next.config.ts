@@ -34,6 +34,13 @@ const nextConfig: NextConfig = {
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
         ],
       },
+      {
+        // Mặc định Next.js chỉ gửi "public, max-age=0" cho file tĩnh trong public/ — ảnh sản phẩm
+        // hiếm khi đổi nội dung dưới cùng tên file nên cache dài hơn (không dùng immutable vì tên
+        // file không content-hash, admin có thể thay ảnh cùng tên).
+        source: "/uploads/:path*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=604800, stale-while-revalidate=86400" }],
+      },
     ];
   },
   async redirects() {

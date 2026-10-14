@@ -29,14 +29,32 @@ export function BannerSlider({ slides }: { slides: BannerSlide[] }) {
       {slides.map((slide, i) => (
         <div key={i} className={`absolute inset-0 transition-opacity duration-700 ${i === index ? "opacity-100" : "pointer-events-none opacity-0"}`} aria-hidden={i !== index} inert={i !== index}>
           {slide.image ? (
+            // Chỉ slide đầu (i===0) tải eager/priority — các slide khác đang ẩn (opacity-0), lazy để
+            // không cạnh tranh băng thông với LCP thật khi tải trang (từng gây preload thừa ~9 ảnh).
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={slide.image} alt={slide.title} width={1176} height={366} className="h-full w-full object-cover" />
+            <img
+              src={slide.image}
+              alt={slide.title}
+              width={1176}
+              height={366}
+              loading={i === 0 ? "eager" : "lazy"}
+              fetchPriority={i === 0 ? "high" : "low"}
+              className="h-full w-full object-cover"
+            />
           ) : (
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_35%,rgba(226,167,73,.35),transparent_35%),linear-gradient(115deg,#061b3d_0%,#003869_60%,#0b4f8f_100%)]">
               <div className="absolute inset-y-6 right-6 hidden w-1/2 items-center justify-end gap-4 sm:flex">
                 {(slide.productImages ?? []).slice(0, 3).map((src, k) => (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img key={src} src={src} alt="" width={200} height={200} className={`aspect-square w-1/3 rounded-lg bg-white object-contain p-2 shadow-xl ${k === 1 ? "-translate-y-4" : "translate-y-3"}`} />
+                  <img
+                    key={src}
+                    src={src}
+                    alt=""
+                    width={200}
+                    height={200}
+                    loading={i === 0 ? "eager" : "lazy"}
+                    className={`aspect-square w-1/3 rounded-lg bg-white object-contain p-2 shadow-xl ${k === 1 ? "-translate-y-4" : "translate-y-3"}`}
+                  />
                 ))}
               </div>
             </div>

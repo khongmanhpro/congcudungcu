@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { cache } from "react";
+import { unstable_cache } from "next/cache";
+import type { Prisma } from "@/generated/prisma/client";
 import { ChevronRight } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getCategorySubtreeIds } from "@/lib/categories";
@@ -61,6 +63,35 @@ export async function generateMetadata({ params, searchParams }: Params): Promis
   };
 }
 
+/** Cache theo brandId+category+page — route đọc searchParams (phân trang) nên luôn SSR động. */
+function getBrandPageData(brandId: string, categorySlug: string | undefined, page: number, where: Prisma.ProductWhereInput, hasCategory: boolean) {
+  return unstable_cache(
+    async () => {
+      const [products, categoryRows] = await Promise.all([
+        prisma.product.findMany({
+          where,
+          include: { images: { take: 1, orderBy: { position: "asc" } }, brand: { select: { name: true } } },
+          orderBy: [{ featured: "desc" }, { publishedAt: { sort: "desc", nulls: "last" } }, { id: "asc" }],
+          skip: (page - 1) * PAGE_SIZE,
+          take: PAGE_SIZE,
+        }),
+        // danh mục của hãng (chỉ ở trang hãng tổng)
+        hasCategory ? Promise.resolve([]) : prisma.product.groupBy({ by: ["categoryId"], where, _count: { _all: true } }),
+      ]);
+      const stats = await getProductStats(products.map((p) => p.id));
+      const categories = categoryRows.length
+        ? await prisma.category.findMany({
+            where: { id: { in: categoryRows.map((r) => r.categoryId!).filter(Boolean) } },
+            select: { id: true, name: true, slug: true, parent: { select: { slug: true } } },
+          })
+        : [];
+      return { products, categoryRows, stats: [...stats], categories };
+    },
+    [`brand-data-${brandId}-${categorySlug ?? "all"}-${page}`],
+    { revalidate: 60, tags: [`brand-${brandId}`] },
+  )();
+}
+
 export default async function BrandPage({ params, searchParams }: Params) {
   const data = await resolve((await params).path);
   if (!data || data.total === 0) notFound();
@@ -69,24 +100,8 @@ export default async function BrandPage({ params, searchParams }: Params) {
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   if (page > totalPages) notFound();
 
-  const [products, categoryRows] = await Promise.all([
-    prisma.product.findMany({
-      where,
-      include: { images: { take: 1, orderBy: { position: "asc" } }, brand: { select: { name: true } } },
-      orderBy: [{ featured: "desc" }, { publishedAt: { sort: "desc", nulls: "last" } }, { id: "asc" }],
-      skip: (page - 1) * PAGE_SIZE,
-      take: PAGE_SIZE,
-    }),
-    // danh mục của hãng (chỉ ở trang hãng tổng)
-    category ? Promise.resolve([]) : prisma.product.groupBy({ by: ["categoryId"], where, _count: { _all: true } }),
-  ]);
-  const stats = await getProductStats(products.map((p) => p.id));
-  const categories = categoryRows.length
-    ? await prisma.category.findMany({
-        where: { id: { in: categoryRows.map((r) => r.categoryId!).filter(Boolean) } },
-        select: { id: true, name: true, slug: true, parent: { select: { slug: true } } },
-      })
-    : [];
+  const { products, categoryRows, stats: statsEntries, categories } = await getBrandPageData(brand.id, category?.slug, page, where, !!category);
+  const stats = new Map(statsEntries);
   const countByCategory = new Map(categoryRows.map((r) => [r.categoryId, r._count._all]));
   const brandCategories = categories.map((c) => ({ ...c, count: countByCategory.get(c.id) ?? 0 })).sort((a, b) => b.count - a.count);
 

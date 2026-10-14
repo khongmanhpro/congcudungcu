@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import type { Metadata } from "next";
 import { cache } from "react";
+import { unstable_cache } from "next/cache";
 import { ChevronRight } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getCategorySubtreeIds } from "@/lib/categories";
@@ -114,30 +115,60 @@ function PolicyView({ title, content }: { title: string; content: string }) {
   );
 }
 
+/**
+ * Phần dữ liệu tốn kém (join ảnh/hãng, 2 groupBy, tìm bài liên quan) — cache theo categoryId+page
+ * vì route này đọc searchParams (phân trang) nên luôn SSR động, revalidate ở page-level không áp
+ * dụng được; cache ở tầng dữ liệu để giảm TTFB thay vì cache ở tầng HTTP.
+ */
+function getCategoryPageData(categoryId: string, page: number, categoryName: string, path: string) {
+  return unstable_cache(
+    async () => {
+      const ids = await getCategorySubtreeIds(categoryId);
+      const where = { status: "PUBLISHED" as const, categoryId: { in: ids } };
+      const [products, total, brandRows, childCounts] = await Promise.all([
+        prisma.product.findMany({
+          where,
+          include: { images: { take: 1, orderBy: { position: "asc" } }, brand: { select: { name: true } } },
+          // id làm khoá phụ → thứ tự ổn định giữa các trang
+          orderBy: [{ featured: "desc" }, { publishedAt: { sort: "desc", nulls: "last" } }, { id: "asc" }],
+          skip: (page - 1) * PAGE_SIZE,
+          take: PAGE_SIZE,
+        }),
+        countProducts(categoryId),
+        prisma.product.groupBy({ by: ["brandId"], where: { ...where, brandId: { not: null } }, _count: { _all: true } }),
+        prisma.product.groupBy({ by: ["categoryId"], where, _count: { _all: true } }),
+      ]);
+      const stats = await getProductStats(products.map((p) => p.id));
+      const brands = await prisma.brand.findMany({
+        where: { id: { in: brandRows.map((r) => r.brandId!) } },
+        select: { id: true, name: true, slug: true },
+      });
+      // bài kiến thức có link tới (hoặc nhắc tên) danh mục này → liên kết hai chiều danh mục ↔ bài viết
+      const guides = await prisma.post
+        .findMany({
+          where: {
+            status: "PUBLISHED",
+            OR: [{ content: { contains: `href="${path}"` } }, { content: { contains: categoryName, mode: "insensitive" } }],
+          },
+          orderBy: { publishedAt: "desc" },
+          take: 4,
+          select: { id: true, slug: true, title: true, excerpt: true },
+        })
+        .catch(() => []);
+      return { products, total, brandRows, childCounts, stats: [...stats], brands, guides };
+    },
+    [`category-data-${categoryId}-${page}`],
+    { revalidate: 60, tags: [`category-${categoryId}`] },
+  )();
+}
+
 async function CategoryView({ category, page }: { category: NonNullable<Awaited<ReturnType<typeof getCategoryBySegments>>>; page: number }) {
-  const ids = await getCategorySubtreeIds(category.id);
-  const where = { status: "PUBLISHED" as const, categoryId: { in: ids } };
-  const [products, total, brandRows, childCounts] = await Promise.all([
-    prisma.product.findMany({
-      where,
-      include: { images: { take: 1, orderBy: { position: "asc" } }, brand: { select: { name: true } } },
-      // id làm khoá phụ → thứ tự ổn định giữa các trang
-      orderBy: [{ featured: "desc" }, { publishedAt: { sort: "desc", nulls: "last" } }, { id: "asc" }],
-      skip: (page - 1) * PAGE_SIZE,
-      take: PAGE_SIZE,
-    }),
-    countProducts(category.id),
-    prisma.product.groupBy({ by: ["brandId"], where: { ...where, brandId: { not: null } }, _count: { _all: true } }),
-    prisma.product.groupBy({ by: ["categoryId"], where, _count: { _all: true } }),
-  ]);
+  const path = categoryPath(category);
+  const { products, total, brandRows, childCounts, stats: statsEntries, brands, guides } = await getCategoryPageData(category.id, page, category.name, path);
+  const stats = new Map(statsEntries);
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   if (page > totalPages) notFound();
 
-  const stats = await getProductStats(products.map((p) => p.id));
-  const brands = await prisma.brand.findMany({
-    where: { id: { in: brandRows.map((r) => r.brandId!) } },
-    select: { id: true, name: true, slug: true },
-  });
   const brandCount = new Map(brandRows.map((r) => [r.brandId, r._count._all]));
   const brandFacets = brands
     .map((b) => ({ ...b, count: brandCount.get(b.id) ?? 0 }))
@@ -145,19 +176,6 @@ async function CategoryView({ category, page }: { category: NonNullable<Awaited<
     .slice(0, 16);
   const childCount = new Map(childCounts.map((r) => [r.categoryId, r._count._all]));
   const faq = parseFaq(category.faq);
-  const path = categoryPath(category);
-  // bài kiến thức có link tới (hoặc nhắc tên) danh mục này → liên kết hai chiều danh mục ↔ bài viết
-  const guides = await prisma.post
-    .findMany({
-      where: {
-        status: "PUBLISHED",
-        OR: [{ content: { contains: `href="${path}"` } }, { content: { contains: category.name, mode: "insensitive" } }],
-      },
-      orderBy: { publishedAt: "desc" },
-      take: 4,
-      select: { id: true, slug: true, title: true, excerpt: true },
-    })
-    .catch(() => []);
   const intro = category.intro || defaultCategoryDescription(category.name, total, category.children);
 
   const breadcrumb = breadcrumbJsonLd([
