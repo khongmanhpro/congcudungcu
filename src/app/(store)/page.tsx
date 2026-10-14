@@ -145,6 +145,7 @@ export default async function HomePage() {
                 <Link
                   key={category.id}
                   href={categoryPath(category)}
+                  prefetch={false}
                   className="rounded-full border border-gold px-3 py-1.5 text-[13px] font-bold text-[#0f172a] transition hover:bg-gold hover:text-brand-dark"
                 >
                   {category.name}

@@ -41,7 +41,7 @@ export function ProductCard({ product, stats }: { product: ProductCardData; stat
         className={`absolute right-2.5 top-2.5 z-10 h-2 w-2 rounded-full ${inStock ? "bg-[#16a34a]" : "bg-price"}`}
         title={inStock ? "Còn hàng" : "Hết hàng"}
       />
-      <Link href={href} aria-label={image?.alt || product.name} className="relative block aspect-square overflow-hidden rounded bg-white">
+      <Link href={href} aria-label={image?.alt || product.name} prefetch={false} className="relative block aspect-square overflow-hidden rounded bg-white">
         {image ? (
           // figcaption sr-only: tên hiển thị ngay bên dưới thẻ rồi, không cần lặp lại trên giao diện —
           // chỉ để công cụ đọc ảnh có ngữ cảnh (không phải ảnh trang trí)
@@ -56,7 +56,7 @@ export function ProductCard({ product, stats }: { product: ProductCardData; stat
       </Link>
 
       <p className="mt-2 truncate text-[11px] uppercase text-[#475569]">{product.sku || product.brand?.name || " "}</p>
-      <Link href={href} title={product.name} className="mt-1 line-clamp-3 min-h-[3.75rem] text-[15px] font-bold leading-5 text-[#0f172a] hover:text-brand">
+      <Link href={href} title={product.name} prefetch={false} className="mt-1 line-clamp-3 min-h-[3.75rem] text-[15px] font-bold leading-5 text-[#0f172a] hover:text-brand">
         {product.name}
       </Link>
 
