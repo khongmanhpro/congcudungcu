@@ -105,7 +105,8 @@
 ## Nội dung & SEO (content-as-code)
 - Nội dung danh mục/thương hiệu/bài kiến thức lưu trong repo: `content/categories.json`, `content/brands.json`, `content/posts/*.md` → nạp bằng `pnpm exec tsx scripts/content/apply-content.ts` (có `--dry-run`, kiểm tra link nội bộ, idempotent).
 - Taxonomy + thương hiệu + mã model: `scripts/content/taxonomy.ts`, `brands.ts` → `pnpm exec tsx scripts/content/classify.ts` (có `--dry-run`, báo cáo `tmp/content-reports/classify.csv`).
-- Viết lại mô tả sản phẩm: `scripts/content/rewrite.ts` (`facts`/`import` khi viết bằng Claude Code; `submit`/`collect` khi dùng API) → duyệt ở `/admin/content-review`.
+- Viết lại mô tả sản phẩm: `scripts/content/rewrite.ts` (`facts`/`import` khi viết bằng Claude Code; `submit`/`collect` khi dùng API) → duyệt ở `/admin/content-review`. Viết hàng loạt khi chưa có dump: `facts --all --batch N` (xuất lô theo danh mục) → `check <file>` → `publish <file>` (đăng thẳng, trạng thái `AI_PUBLISHED` — chưa người duyệt).
+- Dọn tên sản phẩm còn rác từ crawl (tên công ty, cụm quảng cáo rỗng, khoảng trắng kép): `scripts/content/clean-names.ts [--dry-run]`. Khác với rewrite.ts: đây là dữ liệu (Product.name), không phải nội dung AI viết — chỉ cắt rác, không thêm chữ. Quan trọng cho AEO vì Product.name là nguồn cho `<h1>`, JSON-LD "name", breadcrumb — các trang chưa dùng `seoTitle` ở đây.
 - Kiểm tra SEO onpage: `node scripts/seo-audit.mjs [baseUrl] [mẫu/loại]`.
 - **Quy trình khi nạp dump dữ liệu thật** (import-data.sh XOÁ SẠCH DB — nội dung nằm trong repo nên nạp lại được):
   1. `bash scripts/import-data.sh <thư mục dump>`

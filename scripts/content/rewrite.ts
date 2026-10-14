@@ -22,6 +22,8 @@ import Anthropic from "@anthropic-ai/sdk";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Prisma, PrismaClient } from "../../src/generated/prisma/client";
 import { type ProductDraft, stripHtmlText, validateDraft } from "../../src/lib/content-validate";
+import { pingIndexNow } from "../../src/lib/indexnow";
+import { productPath } from "../../src/lib/urls";
 import { readSpecs } from "../../src/lib/specs";
 
 const MODEL = "claude-opus-5-5";
@@ -246,8 +248,12 @@ async function checkDrafts(file: string) {
 async function publishDrafts(file: string) {
   const rows = JSON.parse(readFileSync(file, "utf8")) as { id: string; draft: ProductDraft }[];
   let published = 0;
+  const indexedPaths: string[] = [];
   for (const row of rows) {
-    const product = await prisma.product.findUnique({ where: { id: row.id }, select: { ...PRODUCT_SELECT, contentStatus: true, images: { orderBy: { position: "asc" }, take: 1, select: { id: true } } } });
+    const product = await prisma.product.findUnique({
+      where: { id: row.id },
+      select: { ...PRODUCT_SELECT, slug: true, status: true, contentStatus: true, images: { orderBy: { position: "asc" }, take: 1, select: { id: true } } },
+    });
     if (!product || product.contentStatus === "REVIEWED") continue; // không ghi đè nội dung người đã duyệt
     const f = facts(product);
     const issues = validateDraft(row.draft, JSON.stringify(f), f.oldDescription);
@@ -265,7 +271,10 @@ async function publishDrafts(file: string) {
       ...(product.images[0] && d.imageAlt ? [prisma.productImage.update({ where: { id: product.images[0].id }, data: { alt: d.imageAlt } })] : []),
     ]);
     published++;
+    if (product.status === "PUBLISHED") indexedPaths.push(productPath(product.slug));
   }
+  // báo Bing/Yandex ngay (một lần cho cả lô) — Bing là nguồn của ChatGPT Search, Copilot; không làm gì trên localhost (xem indexnow.ts)
+  if (indexedPaths.length) pingIndexNow(indexedPaths);
   console.log(`Đã đăng ${published}/${rows.length} mô tả (${file}).`);
 }
 
