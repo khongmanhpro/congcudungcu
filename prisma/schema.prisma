@@ -149,6 +149,7 @@ enum ContentStatus {
   ORIGINAL  // nội dung gốc (chưa viết lại)
   AI_DRAFT  // AI đã viết lại, chờ duyệt
   REVIEWED  // người đã duyệt
+  AI_PUBLISHED // AI viết từ dữ kiện ít ỏi (chưa có dump), đã hiển thị nhưng CHƯA có người duyệt
 }
 
 /// Chuyển hướng URL cũ → mới (301) khi đổi slug / cấu trúc

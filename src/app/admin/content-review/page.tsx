@@ -36,7 +36,7 @@ export default async function ContentReviewPage({ searchParams }: { searchParams
       <div>
         <h1 className="text-2xl font-bold">Duyệt nội dung AI</h1>
         <p className="text-sm text-muted-foreground">
-          Chờ duyệt: <strong>{count("AI_DRAFT")}</strong> · Đã duyệt: {count("REVIEWED")} · Nội dung gốc: {count("ORIGINAL")}.
+          Chờ duyệt: <strong>{count("AI_DRAFT")}</strong> · Đã duyệt: {count("REVIEWED")} · AI đã đăng (chưa duyệt): {count("AI_PUBLISHED")} · Nội dung gốc: {count("ORIGINAL")}.
           Tạo bản nháp bằng <code>pnpm exec tsx scripts/content/rewrite.ts</code>.
         </p>
       </div>

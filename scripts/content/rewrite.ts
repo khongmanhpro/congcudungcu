@@ -4,6 +4,9 @@
  *
  *   pnpm exec tsx scripts/content/rewrite.ts facts --limit 10             # (gói Max) xuất dữ kiện cho Claude Code viết
  *   pnpm exec tsx scripts/content/rewrite.ts import tmp/content-drafts/drafts-x.json  # (gói Max) nạp bản nháp
+ *   pnpm exec tsx scripts/content/rewrite.ts facts --all --batch 80      # xuất toàn bộ thành nhiều lô (gom theo danh mục)
+ *   pnpm exec tsx scripts/content/rewrite.ts check <drafts.json>         # kiểm tra file nháp, không ghi DB
+ *   pnpm exec tsx scripts/content/rewrite.ts publish <drafts.json>       # đăng thẳng nháp không lỗi (AI_PUBLISHED, chưa duyệt)
  *   pnpm exec tsx scripts/content/rewrite.ts preview --limit 50           # xem dữ kiện sẽ gửi (không gọi API)
  *   pnpm exec tsx scripts/content/rewrite.ts estimate --limit 50          # đếm token đầu vào (miễn phí), chưa chi tiền
  *   pnpm exec tsx scripts/content/rewrite.ts submit --limit 50            # pilot 50 sp (ưu tiên sp có giá, xen kẽ hãng)
@@ -59,14 +62,16 @@ function arg(name: string): string | undefined {
 
 type SourceProduct = Awaited<ReturnType<typeof loadProducts>>[number];
 
+const PRODUCT_SELECT = {
+  id: true, name: true, sku: true, model: true, origin: true, price: true, shortDesc: true, description: true, specs: true,
+  brand: { select: { name: true, slug: true, country: true } },
+  category: { select: { name: true, parent: { select: { name: true } } } },
+} as const;
+
 async function loadProducts(where: Record<string, unknown>) {
   return prisma.product.findMany({
     where: { status: "PUBLISHED", contentStatus: "ORIGINAL", aiDraft: { equals: Prisma.AnyNull }, ...where },
-    select: {
-      id: true, name: true, sku: true, model: true, origin: true, price: true, shortDesc: true, description: true, specs: true,
-      brand: { select: { name: true, slug: true, country: true } },
-      category: { select: { name: true, parent: { select: { name: true } } } },
-    },
+    select: PRODUCT_SELECT,
   });
 }
 
@@ -158,7 +163,7 @@ async function status(batchId: string) {
 async function saveDraft(productId: string, draft: ProductDraft, source: Record<string, string>) {
   const product = await prisma.product.findUnique({
     where: { id: productId },
-    select: { id: true, name: true, sku: true, model: true, origin: true, price: true, shortDesc: true, description: true, specs: true, brand: { select: { name: true, slug: true, country: true } }, category: { select: { name: true, parent: { select: { name: true } } } } },
+    select: PRODUCT_SELECT,
   });
   if (!product) return null;
   const f = facts(product);
@@ -176,6 +181,21 @@ async function saveDraft(productId: string, draft: ProductDraft, source: Record<
  *   import <file>     → nạp file [{ id, draft }] Claude Code viết, kiểm tra và lưu nháp
  */
 async function exportFacts() {
+  if (process.argv.includes("--all")) {
+    // toàn bộ sp chưa viết, gom theo danh mục → các biến thể (tuýp 8mm, 9mm…) nằm cùng lô, viết nhất quán
+    const size = Number(arg("batch") ?? "80");
+    const rows = (await loadProducts({})).sort((a, b) => {
+      const ka = `${a.category?.parent?.name ?? ""}|${a.category?.name ?? ""}|${a.name}`;
+      const kb = `${b.category?.parent?.name ?? ""}|${b.category?.name ?? ""}|${b.name}`;
+      return ka.localeCompare(kb, "vi");
+    });
+    mkdirSync("tmp/content-drafts/batches", { recursive: true });
+    for (let i = 0; i * size < rows.length; i++) {
+      const file = `tmp/content-drafts/batches/facts-${String(i + 1).padStart(2, "0")}.json`;
+      writeFileSync(file, JSON.stringify(rows.slice(i * size, (i + 1) * size).map((p) => ({ id: p.id, facts: facts(p) })), null, 1));
+    }
+    return console.log(`Đã xuất ${rows.length} sản phẩm thành ${Math.ceil(rows.length / size)} lô → tmp/content-drafts/batches/`);
+  }
   const products = await selectProducts();
   mkdirSync("tmp/content-drafts", { recursive: true });
   const file = `tmp/content-drafts/facts-${Date.now()}.json`;
@@ -197,6 +217,56 @@ async function importDrafts(file: string) {
     console.log(`  ${flag} ${result.name.slice(0, 60)}${result.issues.length ? `\n      ${result.issues.map((i) => `[${i.level}] ${i.message}`).join("\n      ")}` : ""}`);
   }
   console.log(`\nĐã lưu ${saved}/${rows.length} bản nháp. Duyệt tại /admin/content-review`);
+}
+
+/** Kiểm tra file nháp (không ghi DB): số lỗi/cảnh báo theo loại. */
+async function checkDrafts(file: string) {
+  const rows = JSON.parse(readFileSync(file, "utf8")) as { id: string; draft: ProductDraft }[];
+  const products = await prisma.product.findMany({ where: { id: { in: rows.map((r) => r.id) } }, select: PRODUCT_SELECT });
+  const byId = new Map(products.map((p) => [p.id, p]));
+  const codes = new Map<string, number>();
+  let bad = 0;
+  for (const row of rows) {
+    const product = byId.get(row.id);
+    if (!product) { console.log(`  ? ${row.id}: không tìm thấy sản phẩm`); bad++; continue; }
+    const f = facts(product);
+    const issues = validateDraft(row.draft, JSON.stringify(f), f.oldDescription);
+    for (const i of issues) codes.set(`${i.level}:${i.code}`, (codes.get(`${i.level}:${i.code}`) ?? 0) + 1);
+    const errors = issues.filter((i) => i.level === "error");
+    if (errors.length) { bad++; console.log(`  ✗ ${product.name.slice(0, 60)}: ${errors.map((i) => i.message).join(" ")}`); }
+  }
+  console.log(`${rows.length} bản nháp · ${bad} có lỗi · ${[...codes].map(([k, n]) => `${k}=${n}`).join(", ")}`);
+  if (bad) process.exitCode = 2;
+}
+
+/**
+ * Đăng thẳng bản nháp lên site (không qua duyệt từng bài) — dùng khi chưa có dữ liệu gốc và cần trang có mô tả.
+ * Chỉ đăng bản nháp không lỗi; trạng thái AI_PUBLISHED để biết là chưa có người duyệt (sửa tay trong admin bất cứ lúc nào).
+ */
+async function publishDrafts(file: string) {
+  const rows = JSON.parse(readFileSync(file, "utf8")) as { id: string; draft: ProductDraft }[];
+  let published = 0;
+  for (const row of rows) {
+    const product = await prisma.product.findUnique({ where: { id: row.id }, select: { ...PRODUCT_SELECT, contentStatus: true, images: { orderBy: { position: "asc" }, take: 1, select: { id: true } } } });
+    if (!product || product.contentStatus === "REVIEWED") continue; // không ghi đè nội dung người đã duyệt
+    const f = facts(product);
+    const issues = validateDraft(row.draft, JSON.stringify(f), f.oldDescription);
+    if (issues.some((i) => i.level === "error")) { console.log(`  ✗ bỏ qua (có lỗi): ${product.name.slice(0, 60)}`); continue; }
+    const d = row.draft;
+    await prisma.$transaction([
+      prisma.product.update({
+        where: { id: product.id },
+        data: {
+          description: d.descriptionHtml, shortDesc: d.shortDesc, seoTitle: d.seoTitle, seoDesc: d.seoDesc, faq: d.faq,
+          ...(d.specs.length ? { specs: d.specs } : {}),
+          contentStatus: "AI_PUBLISHED", contentUpdatedAt: new Date(), aiDraft: Prisma.DbNull,
+        },
+      }),
+      ...(product.images[0] && d.imageAlt ? [prisma.productImage.update({ where: { id: product.images[0].id }, data: { alt: d.imageAlt } })] : []),
+    ]);
+    published++;
+  }
+  console.log(`Đã đăng ${published}/${rows.length} mô tả (${file}).`);
 }
 
 async function collect(batchId: string) {
@@ -256,11 +326,13 @@ async function main() {
   if (command === "preview") return preview();
   if (command === "facts") return exportFacts();
   if (command === "import" && id) return importDrafts(id);
+  if (command === "check" && id) return checkDrafts(id);
+  if (command === "publish" && id) return publishDrafts(id);
   if (command === "estimate") return estimate();
   if (command === "submit") return submit();
   if (command === "status" && id) return status(id);
   if (command === "collect" && id) return collect(id);
-  console.log("Lệnh: preview | facts | import <file> | estimate | submit | status <batchId> | collect <batchId>  (xem đầu file)");
+  console.log("Lệnh: preview | facts | import <file> | check <file> | publish <file> | estimate | submit | status <batchId> | collect <batchId>  (xem đầu file)");
 }
 
 main()
