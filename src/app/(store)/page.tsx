@@ -55,7 +55,7 @@ function chunk<T>(items: T[], size: number) {
 }
 
 export default async function HomePage() {
-  const [categoryTree, settings, featured, onSale, newest, brands] = await Promise.all([
+  const [categoryTree, settings, featured, onSale, newest, brands, freshness] = await Promise.all([
     getCategoryTree(),
     getSettings(),
     prisma.product.findMany({
@@ -77,9 +77,12 @@ export default async function HomePage() {
       orderBy: [{ publishedAt: { sort: "desc", nulls: "last" } }, { createdAt: "desc" }],
     }).catch(() => []),
     prisma.brand.findMany({ orderBy: { name: "asc" }, take: 24 }).catch(() => []),
+    prisma.product.aggregate({ _max: { contentUpdatedAt: true } }).catch(() => ({ _max: { contentUpdatedAt: null } })),
   ]);
 
   const siteUrl = getSiteUrl();
+  const lastUpdated = freshness._max.contentUpdatedAt ?? new Date();
+  const lastUpdatedLabel = lastUpdated.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
   const highlight = featured.length > 0 ? featured : newest;
   const sale = onSale.filter((p) => p.salePrice! < p.price);
   const stats = await getProductStats([...new Set([...highlight, ...sale, ...newest].map((p) => p.id))]);
@@ -138,6 +141,15 @@ export default async function HomePage() {
               "query-input": "required name=search_term_string",
             },
           },
+          {
+            "@context": "https://schema.org",
+            "@type": "WebPage",
+            "@id": `${siteUrl}/#webpage`,
+            url: siteUrl,
+            name: settings.seo_title || DEFAULT_TITLE,
+            isPartOf: { "@id": `${siteUrl}/#website` },
+            dateModified: lastUpdated.toISOString(),
+          },
           faqJsonLd(HOME_FAQ),
         ]}
       />
@@ -147,6 +159,7 @@ export default async function HomePage() {
           congcudungcu.vn là nhà phân phối dụng cụ cầm tay, dụng cụ điện, khí nén, máy hàn và thiết bị đo lường công nghiệp chính hãng
           tại Việt Nam, gồm các thương hiệu KNIPEX, BOSCH, TOPTUL, WOKIN, MATADOR và nhiều hãng khác — có hóa đơn VAT, CO/CQ đầy đủ.
           Giao hàng toàn quốc trong 2–5 ngày, báo giá nhanh cho doanh nghiệp, đại lý và nhà thầu.
+          <span className="mt-1 block text-xs text-[#94a3b8]">Cập nhật lần cuối: {lastUpdatedLabel}</span>
         </p>
         <BannerSlider slides={banners} />
 
