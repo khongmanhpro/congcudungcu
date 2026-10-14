@@ -47,9 +47,9 @@ next-env.d.ts
 # User uploads (1.7GB - not committed)
 /public/uploads/
 
-# Database backups (too large for git)
-*.sql
-congcudungcu-backup.sql
+# Database backups (too large for git) — CHỈ ở gốc repo, không được khớp
+# prisma/migrations/*/migration.sql (phải commit, Prisma cần để migrate deploy)
+/*.sql
 
 # Dữ liệu xuất từ scripts/export-data.sh (có dữ liệu khách hàng — không commit)
 /data-export/
